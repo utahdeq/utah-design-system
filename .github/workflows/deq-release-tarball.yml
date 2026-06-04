@@ -20,11 +20,11 @@ jobs:
         with:
           node-version: '24'
 
-      # Step 1: Install dependencies cleanly using original workspace names
+      # Step 1: Install dependencies using the pristine upstream structure
       - name: Install Monorepo Dependencies
         run: npm install --no-audit --no-fund
 
-      # Step 2: Inject the dynamic fork version suffix into the workspaces
+      # Step 2: Dynamically append the fork suffix (-fork.1) to internal workspace versions
       - name: Inject Fork Version Overrides
         id: version_env
         run: |
@@ -35,38 +35,40 @@ jobs:
           jq --arg ver "$FORK_VERSION" '.version = $ver' ./@utahdts/utah-design-system/package.json > temp1.json && mv temp1.json ./@utahdts/utah-design-system/package.json
           jq --arg ver "$FORK_VERSION" '.version = $ver' ./@utahdts/utah-design-system-header/package.json > temp2.json && mv temp2.json ./@utahdts/utah-design-system-header/package.json
 
-      # Step 3: Compile workspaces using native, unaltered scripts
+      # Step 3: Compile workspaces using native, unaltered monorepo pipelines
       - name: Compile Workspace Libraries
         run: npm run buildForNPM
 
-      # Step 4: Pack workspaces and dynamically transform their scopes from @utahdts to @utahdeq
+      # Step 4: Pack the unaltered workspaces, then convert identities directly in memory
       - name: Pack and Convert Scope to @utahdeq
         id: pack_step
         run: |
-          # 1. Generate the initial tarballs
+          # 1. Use the workspace engine to drop the original .tgz files in the root folder
           npm pack --workspaces
 
-          ORIGINAL_CORE="utahdts-utah-design-system-${{ steps.version_env.outputs.computed_version }}.tgz"
-          ORIGINAL_HEADER="utahdts-utah-design-system-header-${{ steps.version_env.outputs.computed_version }}.tgz"
+          VERSION_TAG="${{ steps.version_env.outputs.computed_version }}"
+          ORIGINAL_CORE="utahdts-utah-design-system-${VERSION_TAG}.tgz"
+          ORIGINAL_HEADER="utahdts-utah-design-system-header-${VERSION_TAG}.tgz"
 
-          # 2. Convert and repack Core Library without changing directories
+          # 2. Extract and transform the Core Library scope boundary
           mkdir -p ./core-unpack && tar -xzf "$ORIGINAL_CORE" -C ./core-unpack
           jq '.name = "@utahdeq/utah-design-system"' ./core-unpack/package/package.json > temp_core.json && mv temp_core.json ./core-unpack/package/package.json
-          npm pack ./core-unpack/package
 
-          # 3. Convert and repack Header Component without changing directories
+          # Repack without using npm pack commands to eliminate dependencies scanning
+          cd ./core-unpack && tar -czf "$GITHUB_WORKSPACE/utahdeq-utah-design-system-${VERSION_TAG}.tgz" package && cd $GITHUB_WORKSPACE
+
+          # 3. Extract and transform the Header Component scope boundary and internal link
           mkdir -p ./header-unpack && tar -xzf "$ORIGINAL_HEADER" -C ./header-unpack
           jq '.name = "@utahdeq/utah-design-system-header" | .dependencies["@utahdeq/utah-design-system"] = .dependencies["@utahdts/utah-design-system"] | del(.dependencies["@utahdts/utah-design-system"])' ./header-unpack/package/package.json > temp_header.json && mv temp_header.json ./header-unpack/package/package.json
-          npm pack ./header-unpack/package
 
-          # 4. Map the explicit output paths cleanly
-          FINAL_CORE="utahdeq-utah-design-system-${{ steps.version_env.outputs.computed_version }}.tgz"
-          FINAL_HEADER="utahdeq-utah-design-system-header-${{ steps.version_env.outputs.computed_version }}.tgz"
+          # Repack without using npm pack commands to eliminate dependencies scanning
+          cd ./header-unpack && tar -czf "$GITHUB_WORKSPACE/utahdeq-utah-design-system-header-${VERSION_TAG}.tgz" package && cd $GITHUB_WORKSPACE
 
-          echo "core_path=$GITHUB_WORKSPACE/$FINAL_CORE" >> $GITHUB_OUTPUT
-          echo "header_path=$GITHUB_WORKSPACE/$FINAL_HEADER" >> $GITHUB_OUTPUT
+          # 4. Map the newly generated pristine archive targets
+          echo "core_path=$GITHUB_WORKSPACE/utahdeq-utah-design-system-${VERSION_TAG}.tgz" >> $GITHUB_OUTPUT
+          echo "header_path=$GITHUB_WORKSPACE/utahdeq-utah-design-system-header-${VERSION_TAG}.tgz" >> $GITHUB_OUTPUT
 
-      # Step 5: Upload both generated @utahdeq tarball assets to the single GitHub Release
+      # Step 5: Securely upload both converted tarball assets to the single GitHub Release
       - name: Create Release and Upload Assets
         uses: softprops/action-gh-release@v2
         with:
