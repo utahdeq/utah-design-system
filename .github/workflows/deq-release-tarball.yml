@@ -40,7 +40,7 @@ jobs:
           sed -i 's/@utahdts/@utahdeq/g' ./package.json
 
       - name: Install Monorepo Dependencies
-        run: npm ci
+        run: npm install
 
       # Step B: Compile workspaces using the newly patched root script
       - name: Compile Workspace Libraries
