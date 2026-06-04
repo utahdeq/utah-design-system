@@ -46,16 +46,17 @@ jobs:
           # 1. Generate the initial tarballs
           npm pack --workspaces
 
-          ORIGINAL_CORE=$(ls utahdts-utah-design-system-*.tgz)
-          ORIGINAL_HEADER=$(ls utahdts-utah-design-system-header-*.tgz)
+          # Exact filenames based on npm's packing output patterns
+          ORIGINAL_CORE="utahdts-utah-design-system-${{ steps.version_env.outputs.computed_version }}.tgz"
+          ORIGINAL_HEADER="utahdts-utah-design-system-header-${{ steps.version_env.outputs.computed_version }}.tgz"
 
           # 2. Convert the Core Library package identity
-          mkdir -p ./core-unpack && tar -xzf $ORIGINAL_CORE -C ./core-unpack
+          mkdir -p ./core-unpack && tar -xzf "$ORIGINAL_CORE" -C ./core-unpack
           jq '.name = "@utahdeq/utah-design-system"' ./core-unpack/package/package.json > temp_core.json && mv temp_core.json ./core-unpack/package/package.json
           cd ./core-unpack/package && npm pack && mv utahdeq-utah-design-system-*.tgz $GITHUB_WORKSPACE/ && cd $GITHUB_WORKSPACE
 
           # 3. Convert the Header Component package identity and link it to the new core scope
-          mkdir -p ./header-unpack && tar -xzf $ORIGINAL_HEADER -C ./header-unpack
+          mkdir -p ./header-unpack && tar -xzf "$ORIGINAL_HEADER" -C ./header-unpack
           jq '.name = "@utahdeq/utah-design-system-header" | .dependencies["@utahdeq/utah-design-system"] = .dependencies["@utahdts/utah-design-system"] | del(.dependencies["@utahdts/utah-design-system"])' ./header-unpack/package/package.json > temp_header.json && mv temp_header.json ./header-unpack/package/package.json
           cd ./header-unpack/package && npm pack && mv utahdeq-utah-design-system-header-*.tgz $GITHUB_WORKSPACE/ && cd $GITHUB_WORKSPACE
 
