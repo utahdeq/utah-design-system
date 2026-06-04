@@ -1,0 +1,75 @@
+name: Build and Release Monorepo Tarballs
+
+on:
+  push:
+    branches:
+      - dwq-918-fix-filter-date-range-null-dates
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # Step A: Extract original version and inject BOTH Name & Dynamic Version overrides in-memory
+      - name: Inject Fork Identity & Version Overrides
+        id: version_env
+        run: |
+          # 1. Read the original version from the root package.json before we alter anything
+          ORIGINAL_VERSION=$(jq -r '.version' ./package.json)
+          FORK_VERSION="${ORIGINAL_VERSION}-fork.1"
+          echo "computed_version=$FORK_VERSION" >> $GITHUB_OUTPUT
+
+          # 2. Rename the sub-package identity badges and append the dynamic fork suffix
+          jq --arg ver "$FORK_VERSION" '.name = "@utahdeq/utah-design-system" | .version = $ver' ./@utahdts/utah-design-system/package.json > temp1.json && mv temp1.json ./@utahdts/utah-design-system/package.json
+          jq --arg ver "$FORK_VERSION" '.name = "@utahdeq/utah-design-system-header" | .version = $ver' ./@utahdts/utah-design-system-header/package.json > temp2.json && mv temp2.json ./@utahdts/utah-design-system-header/package.json
+
+          # 3. Fix the internal dependency link so the Header looks for the renamed Core package
+          jq '.dependencies["@utahdeq/utah-design-system"] = .dependencies["@utahdts/utah-design-system"] | del(.dependencies["@utahdts/utah-design-system"])' ./@utahdts/utah-design-system-header/package.json > temp3.json && mv temp3.json ./@utahdts/utah-design-system-header/package.json
+
+          # 4. Update the root package.json build scripts to target @utahdeq instead of @utahdts
+          sed -i 's/@utahdts/@utahdeq/g' ./package.json
+
+      - name: Install Monorepo Dependencies
+        run: npm ci
+
+      # Step B: Compile workspaces using the newly patched root script
+      - name: Compile Workspace Libraries
+        run: npm run buildForNPM
+
+      # Step C: Pack ALL workspaces natively from the root directory
+      - name: Pack All Workspace Libraries
+        id: pack_step
+        run: |
+          npm pack --workspaces
+
+          # Find the exact filenames generated in the root directory dynamically
+          CORE_FILE=$(ls utahdeq-utah-design-system-*.tgz)
+          HEADER_FILE=$(ls utahdeq-utah-design-system-header-*.tgz)
+
+          echo "core_path=$GITHUB_WORKSPACE/$CORE_FILE" >> $GITHUB_OUTPUT
+          echo "header_path=$GITHUB_WORKSPACE/$HEADER_FILE" >> $GITHUB_OUTPUT
+
+      # Step D: Upload both generated tarball assets to the single GitHub Release
+      # The tag and release name now use the dynamic version variable
+      - name: Create Release and Upload Assets
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "v${{ steps.version_env.outputs.computed_version }}"
+          name: "Release v${{ steps.version_env.outputs.computed_version }} (DWQ Date Range Patch)"
+          draft: false
+          prerelease: false
+          files: |
+            ${{ steps.pack_step.outputs.core_path }}
+            ${{ steps.pack_step.outputs.header_path }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
