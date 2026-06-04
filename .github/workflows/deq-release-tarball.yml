@@ -39,36 +39,19 @@ jobs:
       - name: Compile Workspace Libraries
         run: npm run buildForNPM
 
-      # Step 4: Pack the unaltered workspaces, then convert identities directly in memory
-      - name: Pack and Convert Scope to @utahdeq
+      # Step 4: Pack the workspaces using native npm commands
+      - name: Pack Workspace Libraries
         id: pack_step
         run: |
-          # 1. Use the workspace engine to drop the original .tgz files in the root folder
           npm pack --workspaces
 
           VERSION_TAG="${{ steps.version_env.outputs.computed_version }}"
-          ORIGINAL_CORE="utahdts-utah-design-system-${VERSION_TAG}.tgz"
-          ORIGINAL_HEADER="utahdts-utah-design-system-header-${VERSION_TAG}.tgz"
 
-          # 2. Extract and transform the Core Library scope boundary
-          mkdir -p ./core-unpack && tar -xzf "$ORIGINAL_CORE" -C ./core-unpack
-          jq '.name = "@utahdeq/utah-design-system"' ./core-unpack/package/package.json > temp_core.json && mv temp_core.json ./core-unpack/package/package.json
+          # Map the native output paths cleanly (keeping original @utahdts naming conventions)
+          echo "core_path=$GITHUB_WORKSPACE/utahdts-utah-design-system-${VERSION_TAG}.tgz" >> $GITHUB_OUTPUT
+          echo "header_path=$GITHUB_WORKSPACE/utahdts-utah-design-system-header-${VERSION_TAG}.tgz" >> $GITHUB_OUTPUT
 
-          # Repack without using npm pack commands to eliminate dependencies scanning
-          cd ./core-unpack && tar -czf "$GITHUB_WORKSPACE/utahdeq-utah-design-system-${VERSION_TAG}.tgz" package && cd $GITHUB_WORKSPACE
-
-          # 3. Extract and transform the Header Component scope boundary and internal link
-          mkdir -p ./header-unpack && tar -xzf "$ORIGINAL_HEADER" -C ./header-unpack
-          jq '.name = "@utahdeq/utah-design-system-header" | .dependencies["@utahdeq/utah-design-system"] = .dependencies["@utahdts/utah-design-system"] | del(.dependencies["@utahdts/utah-design-system"])' ./header-unpack/package/package.json > temp_header.json && mv temp_header.json ./header-unpack/package/package.json
-
-          # Repack without using npm pack commands to eliminate dependencies scanning
-          cd ./header-unpack && tar -czf "$GITHUB_WORKSPACE/utahdeq-utah-design-system-header-${VERSION_TAG}.tgz" package && cd $GITHUB_WORKSPACE
-
-          # 4. Map the newly generated pristine archive targets
-          echo "core_path=$GITHUB_WORKSPACE/utahdeq-utah-design-system-${VERSION_TAG}.tgz" >> $GITHUB_OUTPUT
-          echo "header_path=$GITHUB_WORKSPACE/utahdeq-utah-design-system-header-${VERSION_TAG}.tgz" >> $GITHUB_OUTPUT
-
-      # Step 5: Securely upload both converted tarball assets to the single GitHub Release
+      # Step 5: Upload both generated tarball assets to the single GitHub Release
       - name: Create Release and Upload Assets
         uses: softprops/action-gh-release@v2
         with:
