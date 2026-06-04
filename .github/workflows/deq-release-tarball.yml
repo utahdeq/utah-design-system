@@ -20,11 +20,15 @@ jobs:
         with:
           node-version: '24'
 
-      # Step A: Extract original version and inject BOTH Name & Dynamic Version overrides in-memory
+      # STEP 1: Install dependencies using the original names so npm resolves directories correctly
+      - name: Install Monorepo Dependencies
+        run: npm install --no-audit --no-fund
+
+      # STEP 2: Now that everything is mapped, inject the identity and version overrides in memory
       - name: Inject Fork Identity & Version Overrides
         id: version_env
         run: |
-          # 1. Read the original version from the root package.json before we alter anything
+          # 1. Read the original version from the root package.json
           ORIGINAL_VERSION=$(jq -r '.version' ./package.json)
           FORK_VERSION="${ORIGINAL_VERSION}-fork.1"
           echo "computed_version=$FORK_VERSION" >> $GITHUB_OUTPUT
@@ -39,14 +43,11 @@ jobs:
           # 4. Update the root package.json build scripts to target @utahdeq instead of @utahdts
           sed -i 's/@utahdts/@utahdeq/g' ./package.json
 
-      - name: Install Monorepo Dependencies
-        run: npm install
-
-      # Step B: Compile workspaces using the newly patched root script
+      # STEP 3: Compile workspaces using the newly patched root script
       - name: Compile Workspace Libraries
         run: npm run buildForNPM
 
-      # Step C: Pack ALL workspaces natively from the root directory
+      # STEP 4: Pack ALL workspaces natively from the root directory
       - name: Pack All Workspace Libraries
         id: pack_step
         run: |
@@ -59,8 +60,7 @@ jobs:
           echo "core_path=$GITHUB_WORKSPACE/$CORE_FILE" >> $GITHUB_OUTPUT
           echo "header_path=$GITHUB_WORKSPACE/$HEADER_FILE" >> $GITHUB_OUTPUT
 
-      # Step D: Upload both generated tarball assets to the single GitHub Release
-      # The tag and release name now use the dynamic version variable
+      # STEP 5: Upload both generated tarball assets to the single GitHub Release
       - name: Create Release and Upload Assets
         uses: softprops/action-gh-release@v2
         with:
