@@ -20,47 +20,53 @@ jobs:
         with:
           node-version: '24'
 
-      # STEP 1: Install dependencies using the original names so npm resolves directories correctly
+      # Step 1: Install dependencies cleanly using original workspace names
       - name: Install Monorepo Dependencies
         run: npm install --no-audit --no-fund
 
-      # STEP 2: Now that everything is mapped, inject the identity and version overrides in memory
-      - name: Inject Fork Identity & Version Overrides
+      # Step 2: Inject the dynamic fork version suffix into the workspaces
+      - name: Inject Fork Version Overrides
         id: version_env
         run: |
-          # 1. Read the original version from the root package.json
           ORIGINAL_VERSION=$(jq -r '.version' ./package.json)
           FORK_VERSION="${ORIGINAL_VERSION}-fork.1"
           echo "computed_version=$FORK_VERSION" >> $GITHUB_OUTPUT
 
-          # 2. Rename the sub-package identity badges and append the dynamic fork suffix
-          jq --arg ver "$FORK_VERSION" '.name = "@utahdeq/utah-design-system" | .version = $ver' ./@utahdts/utah-design-system/package.json > temp1.json && mv temp1.json ./@utahdts/utah-design-system/package.json
-          jq --arg ver "$FORK_VERSION" '.name = "@utahdeq/utah-design-system-header" | .version = $ver' ./@utahdts/utah-design-system-header/package.json > temp2.json && mv temp2.json ./@utahdts/utah-design-system-header/package.json
+          jq --arg ver "$FORK_VERSION" '.version = $ver' ./@utahdts/utah-design-system/package.json > temp1.json && mv temp1.json ./@utahdts/utah-design-system/package.json
+          jq --arg ver "$FORK_VERSION" '.version = $ver' ./@utahdts/utah-design-system-header/package.json > temp2.json && mv temp2.json ./@utahdts/utah-design-system-header/package.json
 
-          # 3. Fix the internal dependency link so the Header looks for the renamed Core package
-          jq '.dependencies["@utahdeq/utah-design-system"] = .dependencies["@utahdts/utah-design-system"] | del(.dependencies["@utahdts/utah-design-system"])' ./@utahdts/utah-design-system-header/package.json > temp3.json && mv temp3.json ./@utahdts/utah-design-system-header/package.json
-
-          # 4. Update the root package.json build scripts to target @utahdeq instead of @utahdts
-          sed -i 's/@utahdts/@utahdeq/g' ./package.json
-
-      # STEP 3: Compile workspaces using the newly patched root script
+      # Step 3: Compile workspaces using native, unaltered scripts
       - name: Compile Workspace Libraries
         run: npm run buildForNPM
 
-      # STEP 4: Pack ALL workspaces natively from the root directory
-      - name: Pack All Workspace Libraries
+      # Step 4: Pack workspaces and dynamically transform their scopes from @utahdts to @utahdeq
+      - name: Pack and Convert Scope to @utahdeq
         id: pack_step
         run: |
+          # 1. Generate the initial tarballs
           npm pack --workspaces
 
-          # Find the exact filenames generated in the root directory dynamically
-          CORE_FILE=$(ls utahdeq-utah-design-system-*.tgz)
-          HEADER_FILE=$(ls utahdeq-utah-design-system-header-*.tgz)
+          ORIGINAL_CORE=$(ls utahdts-utah-design-system-*.tgz)
+          ORIGINAL_HEADER=$(ls utahdts-utah-design-system-header-*.tgz)
 
-          echo "core_path=$GITHUB_WORKSPACE/$CORE_FILE" >> $GITHUB_OUTPUT
-          echo "header_path=$GITHUB_WORKSPACE/$HEADER_FILE" >> $GITHUB_OUTPUT
+          # 2. Convert the Core Library package identity
+          mkdir -p ./core-unpack && tar -xzf $ORIGINAL_CORE -C ./core-unpack
+          jq '.name = "@utahdeq/utah-design-system"' ./core-unpack/package/package.json > temp_core.json && mv temp_core.json ./core-unpack/package/package.json
+          cd ./core-unpack/package && npm pack && mv utahdeq-utah-design-system-*.tgz $GITHUB_WORKSPACE/ && cd $GITHUB_WORKSPACE
 
-      # STEP 5: Upload both generated tarball assets to the single GitHub Release
+          # 3. Convert the Header Component package identity and link it to the new core scope
+          mkdir -p ./header-unpack && tar -xzf $ORIGINAL_HEADER -C ./header-unpack
+          jq '.name = "@utahdeq/utah-design-system-header" | .dependencies["@utahdeq/utah-design-system"] = .dependencies["@utahdts/utah-design-system"] | del(.dependencies["@utahdts/utah-design-system"])' ./header-unpack/package/package.json > temp_header.json && mv temp_header.json ./header-unpack/package/package.json
+          cd ./header-unpack/package && npm pack && mv utahdeq-utah-design-system-header-*.tgz $GITHUB_WORKSPACE/ && cd $GITHUB_WORKSPACE
+
+          # 4. Pass the modified paths forward to the release upload engine
+          FINAL_CORE=$(ls utahdeq-utah-design-system-*.tgz)
+          FINAL_HEADER=$(ls utahdeq-utah-design-system-header-*.tgz)
+
+          echo "core_path=$GITHUB_WORKSPACE/$FINAL_CORE" >> $GITHUB_OUTPUT
+          echo "header_path=$GITHUB_WORKSPACE/$FINAL_HEADER" >> $GITHUB_OUTPUT
+
+      # Step 5: Upload both generated @utahdeq tarball assets to the single GitHub Release
       - name: Create Release and Upload Assets
         uses: softprops/action-gh-release@v2
         with:
