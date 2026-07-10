@@ -3,7 +3,7 @@ name: Build and Release Monorepo Tarballs
 on:
   push:
     branches:
-      - dwq-918-fix-filter-date-range-null-dates
+      - ddw-1811
 
 jobs:
   build-and-release:
@@ -24,12 +24,12 @@ jobs:
       - name: Install Monorepo Dependencies
         run: npm install --no-audit --no-fund
 
-      # Step 2: Dynamically append the fork suffix (-fork.1) to internal workspace versions
+      # Step 2: Dynamically append the fork suffix (-fork.2) to internal workspace versions
       - name: Inject Fork Version Overrides
         id: version_env
         run: |
           ORIGINAL_VERSION=$(jq -r '.version' ./package.json)
-          FORK_VERSION="${ORIGINAL_VERSION}-fork.1"
+          FORK_VERSION="${ORIGINAL_VERSION}-fork.2"
           echo "computed_version=$FORK_VERSION" >> $GITHUB_OUTPUT
 
           jq --arg ver "$FORK_VERSION" '.version = $ver' ./@utahdts/utah-design-system/package.json > temp1.json && mv temp1.json ./@utahdts/utah-design-system/package.json
