@@ -12,6 +12,7 @@ import { menuTypes } from '../../enums/menuTypes';
  * @param {object} props
  * @param {string} [props.className]
  * @param {WebsiteMainMenu | WebsiteMainMenuItem} [props.currentMenuItem]
+ * @param {boolean} [props.expandInlineChildrenByDefault=true]
  * @param {WebsiteMainMenu[]} props.menus
  * @param {boolean} [props.triggerOnHover]
  * @returns {import('react').JSX.Element}
@@ -19,6 +20,7 @@ import { menuTypes } from '../../enums/menuTypes';
 export function VerticalMenu({
   className,
   currentMenuItem,
+  expandInlineChildrenByDefault = true,
   menus,
   triggerOnHover = true,
 }) {
@@ -51,6 +53,7 @@ export function VerticalMenu({
                           menuType={menuTypes.VERTICAL}
                           currentMenuItem={currentMenuItem}
                           menuItem={menuItem}
+                          expandChildrenByDefault={expandInlineChildrenByDefault}
                           key={`vertical-menu__menu-item__${menuItem.link}-${menuItem.title}}`}
                         />
                       );

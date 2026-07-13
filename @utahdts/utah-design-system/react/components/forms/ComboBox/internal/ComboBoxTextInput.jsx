@@ -38,6 +38,7 @@ import { moveComboBoxSelectionUp } from '../functions/moveComboBoxSelectionUp';
  * @param {(customValue: string) => void} [props.onCustomEntry]
  * @param {(e: Event, currentFilterValue: string) => boolean} [props.onKeyUp] return true if the key press was handled by this handler
  * @param {string} [props.placeholder]
+ * @param {string} [props.value]
  * @param {string} [props.wrapperClassName]
  * @returns {import('react').JSX.Element}
  */
@@ -71,6 +72,8 @@ export function ComboBoxTextInput({
       options,
       optionValueFocusedId,
       optionValueSelected,
+      optionValueHighlighted,
+      optionsFilteredWithoutGroupLabels,
     },
     setComboBoxContext,
     comboBoxContextNonStateRef,
@@ -123,10 +126,36 @@ export function ComboBoxTextInput({
           // close expanded options after selection since normally have to press enter on the Select Option and it closes popup
           setComboBoxContext((draftContext) => {
             draftContext.isOptionsExpanded = false;
-          });
+          }); 
+          return;
+        }
+
+        // NEW: Select highlighted option if present
+        if (optionValueHighlighted) {
+          const selectedOption = optionsFilteredWithoutGroupLabels.find(
+            (opt) => opt.value === optionValueHighlighted
+          );
+          if (selectedOption) {
+            onChange(selectedOption.value);
+            setComboBoxContext((draftContext) => {
+              draftContext.isOptionsExpanded = false;
+              draftContext.optionValueSelected = selectedOption.value;
+              draftContext.filterValue = selectedOption.label;
+              draftContext.isFilterValueDirty = false;
+            });
+            e.preventDefault();
+          }
         }
       },
-      [allowCustomEntry, multiSelectContext, options, setComboBoxContext]
+      [
+        allowCustomEntry,
+        options,
+        setComboBoxContext,
+        onChange,
+        onCustomEntry,
+        optionValueHighlighted,
+        optionsFilteredWithoutGroupLabels,
+      ]
     )
   );
   const clearIconRef = useRef(/** @type {HTMLButtonElement | null} */(null));
@@ -143,7 +172,7 @@ export function ComboBoxTextInput({
         });
       }
     },
-    [optionValueSelected]
+    [optionValueSelected, setComboBoxContext]
   );
 
   const textInputRef = useRef(/** @type {HTMLInputElement | null} */(null));

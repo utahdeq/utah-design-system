@@ -1359,6 +1359,7 @@ declare module "@utahdts/utah-design-system" {
     isFilterValueDirty: boolean;
     isOptionsExpanded: boolean;
     isValueClearedOnSelection: boolean;
+    firstSelectableByEnter: boolean;
     optionValueFocused: string | null;
     optionValueFocusedId: string | null;
     optionValueHighlighted: string | null;

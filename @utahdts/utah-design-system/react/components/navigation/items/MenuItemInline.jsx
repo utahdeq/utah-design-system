@@ -14,25 +14,28 @@ import { MenuItemNavLink } from './MenuItemNavLink';
 /**
  * @param {object} props
  * @param {WebsiteMainMenu | WebsiteMainMenuItem} [props.currentMenuItem]
+ * @param {boolean} [props.expandChildrenByDefault=true]
  * @param {WebsiteMainMenuItem & VerticalMenuMenuItemAdditions} props.menuItem
  * @param {MenuTypes} [props.menuType]
  * @returns {import('react').JSX.Element}
  */
 export function MenuItemInline({
   currentMenuItem,
+  expandChildrenByDefault = true,
   menuItem,
   menuType = menuTypes.VERTICAL,
 }) {
   // check if any of this menuItem's children are the currently open page/menuItem and if so, then keep this menuItem's children list open
   const [isChildrenOpen, setIsChildrenOpen] = useImmer(() => (
-    !!currentMenuItem?.parentLinks?.includes(menuItem.link ?? '')
+    // Expand by default if expandChildrenByDefault is true AND the menu item has children, OR if it's the current page
+    (expandChildrenByDefault && !!menuItem.children) || !!currentMenuItem?.parentLinks?.includes(menuItem.link ?? '')
   ));
 
   useEffect(
     () => {
       setIsChildrenOpen((isChildrenOpenPreviously) => !!(isChildrenOpenPreviously || currentMenuItem?.parentLinks?.includes(menuItem.link ?? '')));
     },
-    [currentMenuItem, menuItem]
+    [currentMenuItem, menuItem, setIsChildrenOpen]
   );
 
   const navLinkRef = useRef(/** @type {HTMLAnchorElement | null} */(null));
@@ -77,6 +80,7 @@ export function MenuItemInline({
             : (
               <MenuItemNavLink
                 currentMenuItem={currentMenuItem}
+                id={menuItem.children ? encodeURI(`menu-item-${menuItem.id}-${menuItem.link || 'link'}`) : undefined}
                 innerRef={navLinkRef}
                 menuItem={menuItem}
                 menuType={menuType}
@@ -120,6 +124,7 @@ export function MenuItemInline({
               {menuItem.children?.map((menuItemChild) => (
                 <MenuItemInline
                   currentMenuItem={currentMenuItem}
+                  expandChildrenByDefault={expandChildrenByDefault}
                   key={`menu-item__child__${menuItemChild.link}-${menuItemChild.title}}`}
                   menuItem={menuItemChild}
                   menuType={menuType}

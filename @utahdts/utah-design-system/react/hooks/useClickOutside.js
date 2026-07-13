@@ -51,6 +51,6 @@ export function useClickOutside(refs, handler, isDisabled = false) {
 
       return retVal;
     },
-    [handler, isDisabled, ...refs]
+    [handler, isDisabled, refs]
   );
 }

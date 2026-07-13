@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useFloating, autoUpdate, offset as floatingOffset, shift, flip } from '@floating-ui/react-dom';
 import { useAriaMessaging } from '../../../../contexts/UtahDesignSystemContext/hooks/useAriaMessaging';
 import { popupPlacement } from '../../../../enums/popupPlacement';
@@ -16,6 +17,12 @@ import { isOptionGroupVisible } from '../functions/isOptionGroupVisible';
  * @param {import('react').ReactNode | null} [props.children]
  * @param {HTMLElement | null} props.popupReferenceElement
  * @param {string} props.id
+ * @param {HTMLElement | null} [props.portalTarget] Element to portal the dropdown into.
+ *   Pass `document.body` (or any element outside CSS containment contexts) to fix
+ *   misalignment caused by `container-type:inline-size` / `contain:layout` ancestors.
+ *   Defaults to `null` (renders inline — original behaviour, safe for all existing apps).
+ *   When a portalTarget is provided, Popper automatically switches to `strategy:'fixed'`
+ *   so positions are computed in pure viewport coordinates.
  * @returns {import('react').JSX.Element}
  */
 export function CombBoxListBox({
@@ -24,6 +31,7 @@ export function CombBoxListBox({
   children,
   id,
   popupReferenceElement,
+  portalTarget = null,
 }) {
   const [{ selectedValues }] = useMultiSelectContext();
   const { addPoliteMessage } = useAriaMessaging();
@@ -36,6 +44,7 @@ export function CombBoxListBox({
       optionsFilteredWithoutGroupLabels,
       optionValueFocused,
       optionValueSelected,
+      firstSelectableByEnter,
     }, /* array element `setState` is not used here */,
     comboBoxContextNonStateRef,
   ] = useComboBoxContext();
@@ -53,6 +62,7 @@ export function CombBoxListBox({
       shift(),
     ],
     open: isOptionsExpanded,
+    strategy: portalTarget ? 'fixed' : 'absolute',
     placement: popupPlacement.BOTTOM,
     whileElementsMounted: autoUpdate,
   });
@@ -101,23 +111,29 @@ export function CombBoxListBox({
           // there are no groups: '8 results available'
           message.push(`${optionsFilteredWithoutGroupLabels.length} result${optionsFilteredWithoutGroupLabels.length === 1 ? '' : 's'} available.`);
         }
+        if (firstSelectableByEnter && optionsFilteredWithoutGroupLabels.length > 0) {
+          const topOption = optionsFilteredWithoutGroupLabels[0];
+          message.push(`Press enter to select ${topOption?.label} or use the down arrow to begin selecting.`);
+        } else {
+          message.push('Use the down arrow key to begin selecting.');
+        }
         if (allowCustomEntry && filterValue && !options.some((option) => option.labelLowerCase === filterValue.toLocaleLowerCase())) {
           message.push(`Press Enter to add ${filterValue} to the combo box list.`);
         }
-        message.push('Use the down arrow key to begin selecting.');
         addPoliteMessageDebounced(message.join(' '));
       }
     },
     // do not include `optionValueFocused` in the dependency list
-    [isOptionsExpanded, optionsFilteredWithoutGroupLabels, filterValue]
+    [isOptionsExpanded, optionsFilteredWithoutGroupLabels, filterValue, firstSelectableByEnter]
   );
 
-  return (
+  const listBox = (
     <ul
       id={id}
       aria-labelledby={ariaLabelledById}
       className={joinClassNames(
         'combo-box-input__list-box',
+        portalTarget && 'combo-box-input__list-box--portaled',
         !isOptionsExpanded && 'visually-hidden'
       )}
       ref={ulRef}
@@ -144,4 +160,15 @@ export function CombBoxListBox({
       {/* Note: a custom entered option (allowCustomEntry) is not rendered here. The controlling component must create the ComboBoxOption for it. */}
     </ul>
   );
+
+  if (portalTarget) {
+    return createPortal(
+      <div className="utah-design-system" style={{ display: 'contents' }}>
+        {listBox}
+      </div>,
+      portalTarget
+    );
+  }
+
+  return listBox;
 }

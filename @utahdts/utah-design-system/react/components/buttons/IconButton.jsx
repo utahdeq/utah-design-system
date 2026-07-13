@@ -19,6 +19,7 @@ import { Tooltip } from '../tooltip/Tooltip';
  * @param {boolean} [props.isDisabled]
  * @param {boolean} [props.isTitleVisible]
  * @param {import('react').MouseEventHandler<HTMLButtonElement>} [props.onClick] what to do when the button is clicked
+ * @param {number} [props.tabIndex]
  * @param {'small1x' | 'small' | 'medium' | 'large' | 'large1x'} [props.size]
  * @param {string} props.title A title is used for accessibility purposes to describe the button for screen readers
  * @param {string | null} [props.tooltipText]
@@ -35,6 +36,7 @@ export function IconButton({
   isDisabled,
   isTitleVisible,
   onClick,
+  tabIndex,
   size = 'medium',
   title,
   tooltipText,
@@ -62,6 +64,7 @@ export function IconButton({
         id={id || undefined}
         onClick={onClick}
         ref={setReferenceElement}
+        tabIndex={tabIndex}
         type="button"
         {...rest}
       >

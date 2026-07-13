@@ -9,6 +9,7 @@ import { joinClassNames } from '../../../util/joinClassNames';
 /**
  * @param {object} props
  * @param {WebsiteMainMenu | WebsiteMainMenuItem} [props.currentMenuItem]
+ * @param {string} [props.id]
  * @param {import('react').RefObject<HTMLAnchorElement | null>} [props.innerRef]
  * @param {WebsiteMainMenuItem & VerticalMenuMenuItemAdditions} props.menuItem
  * @param {MenuTypes} [props.menuType]
@@ -16,12 +17,14 @@ import { joinClassNames } from '../../../util/joinClassNames';
  */
 export function MenuItemNavLink({
   currentMenuItem,
+  id,
   innerRef,
   menuItem,
   menuType,
 }) {
   return (
     <a
+      id={id}
       className={joinClassNames(
         menuType === menuTypes.VERTICAL ? 'vertical-menu__link-title' : 'menu-item__link-title',
         currentMenuItem?.parentLinks?.includes(menuItem.link ?? '') && (currentMenuItem?.children?.length ? '' : 'menu-item--selected_parent'),

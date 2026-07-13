@@ -312,6 +312,7 @@
  *  @property {boolean} isFilterValueDirty when filter is changed it becomes dirty
  *  @property {boolean} isOptionsExpanded is the options list visible/expanded
  *  @property {boolean} isValueClearedOnSelection after selection, is the value cleared so it appears to not be selected (multi-select uses this)
+ *  @property {boolean} firstSelectableByEnter whether the first option in the filtered list can be selected by pressing enter
  *  @property {string | null} optionValueFocused which option currently has focus; useful for handling text input on blur
  *  @property {string | null} optionValueFocusedId which option DOM element has focus
  *  @property {string | null} optionValueHighlighted the option matching the filter or user has arrowed

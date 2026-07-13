@@ -168,7 +168,6 @@ export function MultiSelectComboBox({
             // the value is always unset because the multi-select will own and show the current value
             value=""
             wrapperClassName={wrapperClassName}
-            // @ts-expect-error
             isLabelSkipped // this gets spread down to the textInput so that there is only one label
             onFocus={
               /** @type {UIEventHandler} */ (
@@ -202,6 +201,7 @@ export function MultiSelectComboBox({
           </ComboBox>
           <MultiSelectClearIcon isClearable={isClearable} isDisabled={isDisabled} />
           <IconButton
+            tabIndex={-1}
             className={joinClassNames(
               'multi-select__chevron',
               'icon-button--borderless',

@@ -28,6 +28,7 @@ import { ComboBoxContext } from './ComboBoxContext';
  * @param {string} props.comboBoxId
  * @param {string} [props.defaultValue]
  * @param {boolean} [props.isValueClearedOnSelection]
+ * @param {boolean} [props.firstSelectableByEnter]
  * @param {((newValue: string) => void)} [props.onChange]
  * @param {(() => void)} [props.onClear]
  * @param {(e: Event, currentFilterValue: string) => boolean} [props.onKeyUp]
@@ -36,9 +37,9 @@ import { ComboBoxContext } from './ComboBoxContext';
  */
 export function ComboBoxContextProvider({
   children,
-  comboBoxId,
   defaultValue,
   isValueClearedOnSelection,
+  firstSelectableByEnter,
   onChange,
   onClear,
   onKeyUp,
@@ -64,7 +65,7 @@ export function ComboBoxContextProvider({
         });
       }
     },
-    [comboBoxId, onChange]
+    [onChange]
   );
 
   const comboBoxContextNonStateRef = useRef({
@@ -78,6 +79,7 @@ export function ComboBoxContextProvider({
     isFilterValueDirty: false,
     isOptionsExpanded: false,
     isValueClearedOnSelection: !!isValueClearedOnSelection,
+    firstSelectableByEnter: !!firstSelectableByEnter,
     onChange: onChangeFormValue,
     onClear,
     onKeyUp,
@@ -110,6 +112,14 @@ export function ComboBoxContextProvider({
   const setComboBoxState = comboBoxImmer[1];
   comboBoxImmerRef.current = comboBoxImmer;
 
+  const {
+    filterValue,
+    optionValueSelected,
+    options,
+    isFilterValueDirty,
+    optionsFilteredWithoutGroupLabels,
+  } = comboBoxImmer[0];
+
   // handle a controlled component changing its value
   useEffect(
     () => {
@@ -121,18 +131,12 @@ export function ComboBoxContextProvider({
         });
       }
     },
-    [value]
+    [value, comboBoxImmer, optionValueSelected]
   );
 
   // handle options or filterValue changes
   useEffect(
     () => {
-      const {
-        filterValue,
-        isFilterValueDirty,
-        options,
-        optionValueSelected,
-      } = comboBoxImmer[0];
       if (isFilterValueDirty) {
         const filterValueLowerCase = trim(filterValue).toLocaleLowerCase();
         const isSelectedValueNew = filterValue === optionValueSelected && !options.find((option) => option.value === optionValueSelected);
@@ -155,7 +159,7 @@ export function ComboBoxContextProvider({
         });
       }
     },
-    [comboBoxImmer[0].filterValue, comboBoxImmer[0].optionValueSelected, comboBoxImmer[0].options, setComboBoxState]
+    [filterValue, optionValueSelected, options, isFilterValueDirty, setComboBoxState]
   );
 
   // eslint-disable-next-line max-len
@@ -171,19 +175,23 @@ export function ComboBoxContextProvider({
   // update multi-select-context if there is one when combo box's options change
   useEffect(
     () => {
-      setMultiSelectContext((draftContext) => {
-        draftContext.comboBoxOptions = comboBoxImmer[0].options;
-      });
+      if (setMultiSelectContext) {
+        setMultiSelectContext((draftContext) => {
+          draftContext.comboBoxOptions = options;
+        });
+      }
     },
-    [comboBoxImmer[0].options]
+    [options, setMultiSelectContext]
   );
   useEffect(
     () => {
-      setMultiSelectContext((draftContext) => {
-        draftContext.isOptionsExpanded = comboBoxImmer[0].isOptionsExpanded;
-      });
+      if (setMultiSelectContext) {
+        setMultiSelectContext((draftContext) => {
+          draftContext.isOptionsExpanded = comboBoxImmer[0].isOptionsExpanded;
+        });
+      }
     },
-    [comboBoxImmer[0].isOptionsExpanded]
+    [comboBoxImmer, setMultiSelectContext]
   );
 
   // update onClear on change
@@ -193,8 +201,25 @@ export function ComboBoxContextProvider({
         draftContext.onClear = onClear;
       });
     },
-    [onClear]
+    [onClear, comboBoxImmer]
   );
+
+  useEffect(() => {
+    // Highlight first option if enabled, but DO NOT focus it.
+    if (firstSelectableByEnter && optionsFilteredWithoutGroupLabels.length > 0) {
+      setComboBoxState(draft => {
+        draft.optionValueHighlighted = optionsFilteredWithoutGroupLabels[0]?.value ?? null;
+      });
+    } else {
+      setComboBoxState(draft => {
+        draft.optionValueHighlighted = null;
+      });
+    }
+  }, [
+    firstSelectableByEnter,
+    optionsFilteredWithoutGroupLabels,
+    setComboBoxState
+  ]);
 
   return (
     <ComboBoxContext.Provider value={providerValue}>

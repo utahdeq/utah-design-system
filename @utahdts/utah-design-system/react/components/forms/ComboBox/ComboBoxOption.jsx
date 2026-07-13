@@ -124,7 +124,7 @@ export function ComboBoxOption({
       }
       // unregister is handled on unmount instead of on data change
     },
-    [registerOption, unregisterOption, value, label, identifiesWithOptionGroupId, isHidden, isStatic, comboBoxContextNonStateRef]
+    [registerOption, unregisterOption, value, optionGroupId, label, identifiesWithOptionGroupId, isHidden, isStatic, comboBoxContextNonStateRef]
   );
 
   useEffect(
@@ -136,7 +136,7 @@ export function ComboBoxOption({
         }
       }
     ),
-    []
+    [isStatic, unregisterOption, value]
   );
 
   // handle focusing

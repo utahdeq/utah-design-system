@@ -26,6 +26,7 @@ import { ComboBoxTextInput } from './internal/ComboBoxTextInput';
  * @param {boolean} [props.isRequired]
  * @param {boolean} [props.isShowingClearableIcon] if `isClearable` is true, this can override the logic for showing the clearable `x`
  * @param {boolean} [props.isValueClearedOnSelection] after selection, is the value cleared so it appears to not be selected (multi-select uses this)
+ * @param {boolean} [props.isLabelSkipped] when true, the internal text input skips rendering its label
  * @param {boolean} [props.isWrapperSkipped] wrapper div is optional
  * @param {string} props.label
  * @param {string} [props.labelClassName]
@@ -33,13 +34,16 @@ import { ComboBoxTextInput } from './internal/ComboBoxTextInput';
  * @param {((newValue: string) => void)} [props.onChange]
  * @param {() => void} [props.onClear]
  * @param {(customValue: string) => void} [props.onCustomEntry] caller is responsible for adding options when they are added
+ * @param {import('react').UIEventHandler} [props.onBlur]
  * @param {(e: Event, currentFilterValue: string) => boolean} [props.onKeyUp]
+ * @param {import('react').UIEventHandler} [props.onFocus]
  * @param {string} [props.placeholder]
  * @param {HTMLElement | null} [props.popupContentRef] for multi-select the popup relates to the multi-select wrapper, not the input
  * @param {import('react').ReactNode} [props.tagChildren]
  * @param {string} [props.textInputClassName] className to put on the TextInput
  * @param {string} [props.value]
  * @param {string} [props.wrapperClassName]
+ * @param {boolean} [props.firstSelectableByEnter] if true, the first option will be highlighted by default and selectable by pressing Enter
  * @returns {import('react').JSX.Element}
  */
 export function ComboBox({
@@ -71,6 +75,7 @@ export function ComboBox({
   textInputClassName,
   value,
   wrapperClassName,
+  firstSelectableByEnter,
   ...rest
 }) {
   const comboBoxListId = `${id}__${useId()}`;
@@ -100,6 +105,7 @@ export function ComboBox({
         name={name}
         onCustomEntry={onCustomEntry}
         placeholder={placeholder}
+        value={value} // Pass value down
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...rest}
       />
@@ -118,6 +124,7 @@ export function ComboBox({
     <ComboBoxContextProvider
       comboBoxId={id}
       defaultValue={defaultValue}
+      firstSelectableByEnter={firstSelectableByEnter}
       isValueClearedOnSelection={isValueClearedOnSelection}
       onChange={onChange}
       onClear={onClear}
