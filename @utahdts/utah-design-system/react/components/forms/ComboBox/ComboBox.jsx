@@ -39,6 +39,10 @@ import { ComboBoxTextInput } from './internal/ComboBoxTextInput';
  * @param {import('react').UIEventHandler} [props.onFocus]
  * @param {string} [props.placeholder]
  * @param {HTMLElement | null} [props.popupContentRef] for multi-select the popup relates to the multi-select wrapper, not the input
+ * @param {HTMLElement | null} [props.portalTarget] Element to portal the dropdown into.
+ *   Pass `document.body` (or any element outside CSS containment contexts) to fix
+ *   misalignment caused by `container-type:inline-size` / `contain:layout` ancestors.
+ *   Defaults to `null` (renders inline — original behaviour, safe for all existing apps).
  * @param {import('react').ReactNode} [props.tagChildren]
  * @param {string} [props.textInputClassName] className to put on the TextInput
  * @param {string} [props.value]
@@ -69,6 +73,7 @@ export function ComboBox({
   onKeyUp,
   placeholder,
   popupContentRef,
+  portalTarget = null,
   isValueClearedOnSelection,
   isWrapperSkipped,
   tagChildren,
@@ -114,6 +119,7 @@ export function ComboBox({
         id={comboBoxListId}
         ariaLabelledById={id}
         popupReferenceElement={popupContentRef ?? contentRefState ?? null}
+        portalTarget={portalTarget}
       >
         {children}
       </CombBoxListBox>
