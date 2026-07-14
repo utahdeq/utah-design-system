@@ -35,7 +35,7 @@
   "scripts": {
     "build": "vite build",
     "buildw": "vite build --watch",
-    "buildTypes": "mkdir -p dist && cp ./artifacts/index.d.ts ./dist/",
+    "buildTypes": "node -e \"const fs=require('fs');fs.mkdirSync('./dist',{recursive:true});fs.copyFileSync('./artifacts/index.d.ts','./dist/index.d.ts')\"",
     "generateTypes": "npx tsc",
     "preview": "vite preview",
     "publishLibrary": "npm publish --access public",

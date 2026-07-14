@@ -51,15 +51,7 @@ jobs:
           echo "core_path=$GITHUB_WORKSPACE/utahdts-utah-design-system-${VERSION_TAG}.tgz" >> $GITHUB_OUTPUT
           echo "header_path=$GITHUB_WORKSPACE/utahdts-utah-design-system-header-${VERSION_TAG}.tgz" >> $GITHUB_OUTPUT
 
-      # Step 5: Remove an existing release/tag for this version so reruns are clean
-      - name: Remove Existing Release For Tag
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          TAG_NAME="v${{ steps.version_env.outputs.computed_version }}"
-          gh release delete "$TAG_NAME" --yes --cleanup-tag || true
-
-      # Step 6: Upload both generated tarball assets to the single GitHub Release
+      # Step 5: Upload both generated tarball assets to the single GitHub Release
       - name: Create Release and Upload Assets
         uses: softprops/action-gh-release@v2
         with:
@@ -67,9 +59,9 @@ jobs:
           name: "Release v${{ steps.version_env.outputs.computed_version }} (DWQ Date Range Patch)"
           draft: false
           prerelease: false
-          overwrite_files: true
           files: |
             ${{ steps.pack_step.outputs.core_path }}
             ${{ steps.pack_step.outputs.header_path }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          

@@ -1,5 +1,5 @@
 (function(global, factory) {
-	typeof exports === "object" && typeof module !== "undefined" ? factory(exports, require("@utahdts/utah-design-system-header"), require("react"), require("@floating-ui/react-dom"), require("lodash-es"), require("react/jsx-runtime"), require("use-immer"), require("date-fns"), require("uuid")) : typeof define === "function" && define.amd ? define([
+	typeof exports === "object" && typeof module !== "undefined" ? factory(exports, require("@utahdts/utah-design-system-header"), require("react"), require("@floating-ui/react-dom"), require("lodash-es"), require("react/jsx-runtime"), require("use-immer"), require("date-fns"), require("react-dom"), require("uuid")) : typeof define === "function" && define.amd ? define([
 		"exports",
 		"@utahdts/utah-design-system-header",
 		"react",
@@ -8,9 +8,10 @@
 		"react/jsx-runtime",
 		"use-immer",
 		"date-fns",
+		"react-dom",
 		"uuid"
-	], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, factory(global["@utahdts/utah-design-system"] = {}, global["@utahdts/utah-design-system-header"], global.React, global["@floating-ui/react-dom"], global["lodash-es"], global.jsxRuntime, global.useImmer, global.dateFns, global.uuid));
-})(this, function(exports, _utahdts_utah_design_system_header, react, _floating_ui_react_dom, lodash_es, react_jsx_runtime, use_immer, date_fns, uuid) {
+	], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, factory(global["@utahdts/utah-design-system"] = {}, global["@utahdts/utah-design-system-header"], global.React, global["@floating-ui/react-dom"], global["lodash-es"], global.jsxRuntime, global.useImmer, global.dateFns, global.react_dom, global.uuid));
+})(this, function(exports, _utahdts_utah_design_system_header, react, _floating_ui_react_dom, lodash_es, react_jsx_runtime, use_immer, date_fns, react_dom, uuid) {
 	Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
 	//#region \0rolldown/runtime.js
 	var __create = Object.create;
@@ -72,7 +73,7 @@
 		scripts: {
 			"build": "vite build",
 			"buildw": "vite build --watch",
-			"buildTypes": "mkdir -p dist && cp ./artifacts/index.d.ts ./dist/",
+			"buildTypes": "node -e \"const fs=require('fs');fs.mkdirSync('./dist',{recursive:true});fs.copyFileSync('./artifacts/index.d.ts','./dist/index.d.ts')\"",
 			"generateTypes": "npx tsc",
 			"preview": "vite preview",
 			"publishLibrary": "npm publish --access public",
@@ -613,12 +614,13 @@
 	* @param {boolean} [props.isDisabled]
 	* @param {boolean} [props.isTitleVisible]
 	* @param {import('react').MouseEventHandler<HTMLButtonElement>} [props.onClick] what to do when the button is clicked
+	* @param {number} [props.tabIndex]
 	* @param {'small1x' | 'small' | 'medium' | 'large' | 'large1x'} [props.size]
 	* @param {string} props.title A title is used for accessibility purposes to describe the button for screen readers
 	* @param {string | null} [props.tooltipText]
 	* @returns {import('react').JSX.Element}
 	*/
-	function IconButton({ appearance = ICON_BUTTON_APPEARANCE.OUTLINED, children, className, color = componentColors.NONE, icon, id, innerRef: draftInnerRef, isDisabled, isTitleVisible, onClick, size = "medium", title, tooltipText, ...rest }) {
+	function IconButton({ appearance = ICON_BUTTON_APPEARANCE.OUTLINED, children, className, color = componentColors.NONE, icon, id, innerRef: draftInnerRef, isDisabled, isTitleVisible, onClick, tabIndex, size = "medium", title, tooltipText, ...rest }) {
 		const [referenceElement, setReferenceElement] = (0, react.useState)(null);
 		if (draftInnerRef && referenceElement) draftInnerRef.current = referenceElement;
 		return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)(react_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("button", {
@@ -627,6 +629,7 @@
 			id: id || void 0,
 			onClick,
 			ref: setReferenceElement,
+			tabIndex,
 			type: "button",
 			...rest,
 			children: [
@@ -882,18 +885,9 @@
 	*/
 	function Drawer({ ariaLabelledBy, children, className, id, innerRef, onClose, onEscape, position = DRAWER_PLACEMENT.RIGHT }) {
 		const ref = (0, react.useRef)(null);
-		const [lastActiveElement] = (0, use_immer.useImmer)(
-			/** @type {HTMLElement | undefined} */
-			document.activeElement
-		);
-		const [firstTabElement, setFirstTabElement] = (0, use_immer.useImmer)(
-			/** @type {HTMLElement | undefined} */
-			void 0
-		);
-		const [lastTabElement, setLastTabElement] = (0, use_immer.useImmer)(
-			/** @type {HTMLElement | undefined} */
-			void 0
-		);
+		const [lastActiveElement] = (0, use_immer.useImmer)(document.activeElement);
+		const [firstTabElement, setFirstTabElement] = (0, use_immer.useImmer)(void 0);
+		const [lastTabElement, setLastTabElement] = (0, use_immer.useImmer)(void 0);
 		const { addAssertiveMessage } = useAriaMessaging();
 		const handleEscape = useHandleEscape(onEscape);
 		const handleTab = useHandleTab(firstTabElement, lastTabElement);
@@ -1030,10 +1024,7 @@
 	* @returns {import('react').JSX.Element}
 	*/
 	function Tab({ children, id }) {
-		const tabRef = (0, react.useRef)(
-			/** @type {HTMLButtonElement | null} */
-			null
-		);
+		const tabRef = (0, react.useRef)(null);
 		const { isVertical, navigateNext, navigatePrevious, registerTab, selectedTabId, setSelectedTabId, tabGroupId, unRegisterTab } = useTabGroupContext();
 		const onKeyChange = (event) => {
 			if ([
@@ -1097,10 +1088,7 @@
 	*/
 	function TabGroup({ children, className, defaultValue, isVertical, onChange, value }) {
 		const tabGroupId = (0, react.useId)();
-		const tabGroupRef = (0, react.useRef)(
-			/** @type {HTMLDivElement | null} */
-			null
-		);
+		const tabGroupRef = (0, react.useRef)(null);
 		const [tabGroupState, setTabGroupState] = (0, use_immer.useImmer)(() => ({
 			selectedTabId: defaultValue || "",
 			tabGroupId,
@@ -1500,15 +1488,9 @@
 	function CalendarInput({ className, dateFormat = "MM/dd/yyyy", errorMessage, id, innerRef, isDisabled, isHidden, isRequired, label, labelClassName, onChange, shouldSetFocusOnMount, showTodayButton, value, wrapperClassName, ...rest }) {
 		const { addPoliteMessage } = useAriaMessaging();
 		const calendarInputId = (0, react.useId)();
-		const firstFocusableElementRef = (0, react.useRef)(
-			/** @type {any | null} */
-			null
-		);
+		const firstFocusableElementRef = (0, react.useRef)(null);
 		const currentValueDate = value ? (0, date_fns.parse)(value, dateFormat, /* @__PURE__ */ new Date()) : null;
-		const [currentValueDateInternal, setCurrentValueDateInternal] = (0, react.useState)(
-			/** @type {Date | null} */
-			null
-		);
+		const [currentValueDateInternal, setCurrentValueDateInternal] = (0, react.useState)(null);
 		(0, react.useEffect)(() => {
 			if (currentValueDateInternal?.getTime() !== currentValueDate?.getTime()) setCurrentValueDateInternal(currentValueDate && (0, date_fns.isValid)(currentValueDate) ? currentValueDate : /* @__PURE__ */ new Date());
 		}, [currentValueDate?.getTime()]);
@@ -1853,6 +1835,7 @@
 			isFilterValueDirty: false,
 			isOptionsExpanded: false,
 			isValueClearedOnSelection: false,
+			firstSelectableByEnter: false,
 			onChange: () => {},
 			options: [],
 			optionsFiltered: [],
@@ -1886,18 +1869,16 @@
 	* @param {string} props.comboBoxId
 	* @param {string} [props.defaultValue]
 	* @param {boolean} [props.isValueClearedOnSelection]
+	* @param {boolean} [props.firstSelectableByEnter]
 	* @param {((newValue: string) => void)} [props.onChange]
 	* @param {(() => void)} [props.onClear]
 	* @param {(e: Event, currentFilterValue: string) => boolean} [props.onKeyUp]
 	* @param {string} [props.value]
 	* @returns {import('react').JSX.Element}
 	*/
-	function ComboBoxContextProvider({ children, comboBoxId, defaultValue, isValueClearedOnSelection, onChange, onClear, onKeyUp, value }) {
+	function ComboBoxContextProvider({ children, defaultValue, isValueClearedOnSelection, firstSelectableByEnter, onChange, onClear, onKeyUp, value }) {
 		const [, setMultiSelectContext] = useMultiSelectContext();
-		const comboBoxImmerRef = (0, react.useRef)(
-			/** @type {import('use-immer').ImmerHook<ComboBoxContextValue> | null} */
-			null
-		);
+		const comboBoxImmerRef = (0, react.useRef)(null);
 		const onChangeFormValue = (0, react.useCallback)(
 			/** @param {string} newValue */
 			(newValue) => {
@@ -1910,7 +1891,7 @@
 					draftContext.filterValue = draftContext.options.find((option) => option.value === newValue)?.label || "";
 				});
 			},
-			[comboBoxId, onChange]
+			[onChange]
 		);
 		const comboBoxContextNonStateRef = (0, react.useRef)({
 			currentOptionGroupId: "",
@@ -1922,6 +1903,7 @@
 			isFilterValueDirty: false,
 			isOptionsExpanded: false,
 			isValueClearedOnSelection: !!isValueClearedOnSelection,
+			firstSelectableByEnter: !!firstSelectableByEnter,
 			onChange: onChangeFormValue,
 			onClear,
 			onKeyUp,
@@ -1947,15 +1929,19 @@
 		});
 		const setComboBoxState = comboBoxImmer[1];
 		comboBoxImmerRef.current = comboBoxImmer;
+		const { filterValue, optionValueSelected, options, isFilterValueDirty, optionsFilteredWithoutGroupLabels } = comboBoxImmer[0];
 		(0, react.useEffect)(() => {
 			if (value !== void 0 && value !== comboBoxImmer[0].optionValueSelected) comboBoxImmer[1]((draftState) => {
 				draftState.optionValueSelected = value;
 				draftState.filterValue = draftState.options.find((option) => option.value === value)?.label ?? draftState.filterValue;
 				draftState.isFilterValueDirty = false;
 			});
-		}, [value]);
+		}, [
+			value,
+			comboBoxImmer,
+			optionValueSelected
+		]);
 		(0, react.useEffect)(() => {
-			const { filterValue, isFilterValueDirty, options, optionValueSelected } = comboBoxImmer[0];
 			if (isFilterValueDirty) {
 				const filterValueLowerCase = (0, lodash_es.trim)(filterValue).toLocaleLowerCase();
 				const isSelectedValueNew = filterValue === optionValueSelected && !options.find((option) => option.value === optionValueSelected);
@@ -1970,28 +1956,41 @@
 				draftContextValue.optionsFilteredWithoutGroupLabels = options.filter((option) => !option.isGroupLabel && !option.isHidden);
 			});
 		}, [
-			comboBoxImmer[0].filterValue,
-			comboBoxImmer[0].optionValueSelected,
-			comboBoxImmer[0].options,
+			filterValue,
+			optionValueSelected,
+			options,
+			isFilterValueDirty,
 			setComboBoxState
 		]);
 		/** @type {[ComboBoxContextValue, Updater<ComboBoxContextValue>, MutableRefObject<ComboBoxContextNonStateRef>]} */
 		const providerValue = (0, react.useMemo)(() => [...comboBoxImmer, comboBoxContextNonStateRef], [comboBoxImmer, comboBoxContextNonStateRef]);
 		(0, react.useEffect)(() => {
-			setMultiSelectContext((draftContext) => {
-				draftContext.comboBoxOptions = comboBoxImmer[0].options;
+			if (setMultiSelectContext) setMultiSelectContext((draftContext) => {
+				draftContext.comboBoxOptions = options;
 			});
-		}, [comboBoxImmer[0].options]);
+		}, [options, setMultiSelectContext]);
 		(0, react.useEffect)(() => {
-			setMultiSelectContext((draftContext) => {
+			if (setMultiSelectContext) setMultiSelectContext((draftContext) => {
 				draftContext.isOptionsExpanded = comboBoxImmer[0].isOptionsExpanded;
 			});
-		}, [comboBoxImmer[0].isOptionsExpanded]);
+		}, [comboBoxImmer, setMultiSelectContext]);
 		(0, react.useEffect)(() => {
 			comboBoxImmer[1]((draftContext) => {
 				draftContext.onClear = onClear;
 			});
-		}, [onClear]);
+		}, [onClear, comboBoxImmer]);
+		(0, react.useEffect)(() => {
+			if (firstSelectableByEnter && optionsFilteredWithoutGroupLabels.length > 0) setComboBoxState((draft) => {
+				draft.optionValueHighlighted = optionsFilteredWithoutGroupLabels[0]?.value ?? null;
+			});
+			else setComboBoxState((draft) => {
+				draft.optionValueHighlighted = null;
+			});
+		}, [
+			firstSelectableByEnter,
+			optionsFilteredWithoutGroupLabels,
+			setComboBoxState
+		]);
 		return /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ComboBoxContext.Provider, {
 			value: providerValue,
 			children
@@ -2017,10 +2016,7 @@
 	*/
 	function useDebounceFunc(func, delay = 1e3) {
 		const lastInvocationRef = (0, react.useRef)(NaN);
-		const lastVarArgsRef = (0, react.useRef)(
-			/** @type {any[] | null} */
-			null
-		);
+		const lastVarArgsRef = (0, react.useRef)(null);
 		const timeoutRef = (0, react.useRef)(NaN);
 		(0, react.useEffect)(() => () => clearTimeout(timeoutRef.current), []);
 		return (0, react.useCallback)((param) => {
@@ -2159,10 +2155,7 @@
 	*/
 	function ComboBoxOption({ children, className, isDisabled, identifiesWithOptionGroupId, isStatic, isHidden, label, value, ...rest }) {
 		const optionId = (0, react.useId)();
-		const optionRef = (0, react.useRef)(
-			/** @type {HTMLLIElement | null} */
-			null
-		);
+		const optionRef = (0, react.useRef)(null);
 		const [multiSelectContext] = useMultiSelectContext();
 		const [{ isOptionsExpanded, onChange, optionsFiltered, optionsFilteredWithoutGroupLabels, optionValueFocused, optionValueHighlighted, optionValueSelected, registerOption, unregisterOption }, setComboBoxContext, comboBoxContextNonStateRef] = useComboBoxContext();
 		const optionGroupId = useComboBoxOptionGroupContext();
@@ -2206,6 +2199,7 @@
 			registerOption,
 			unregisterOption,
 			value,
+			optionGroupId,
 			label,
 			identifiesWithOptionGroupId,
 			isHidden,
@@ -2214,7 +2208,11 @@
 		]);
 		(0, react.useEffect)(() => (() => {
 			if (!isStatic) unregisterOption(value);
-		}), []);
+		}), [
+			isStatic,
+			unregisterOption,
+			value
+		]);
 		(0, react.useEffect)(() => {
 			if (optionValueFocused === value) {
 				if (optionRef.current !== document.activeElement) optionRef.current?.focus();
@@ -2280,16 +2278,19 @@
 	* @param {import('react').ReactNode | null} [props.children]
 	* @param {HTMLElement | null} props.popupReferenceElement
 	* @param {string} props.id
+	* @param {HTMLElement | null} [props.portalTarget] Element to portal the dropdown into.
+	*   Pass `document.body` (or any element outside CSS containment contexts) to fix
+	*   misalignment caused by `container-type:inline-size` / `contain:layout` ancestors.
+	*   Defaults to `null` (renders inline — original behaviour, safe for all existing apps).
+	*   When a portalTarget is provided, Popper automatically switches to `strategy:'fixed'`
+	*   so positions are computed in pure viewport coordinates.
 	* @returns {import('react').JSX.Element}
 	*/
-	function CombBoxListBox({ allowCustomEntry, ariaLabelledById, children, id, popupReferenceElement }) {
+	function CombBoxListBox({ allowCustomEntry, ariaLabelledById, children, id, popupReferenceElement, portalTarget = null }) {
 		const [{ selectedValues }] = useMultiSelectContext();
 		const { addPoliteMessage } = useAriaMessaging();
-		const [{ filterValue, isOptionsExpanded, options, optionsFiltered, optionsFilteredWithoutGroupLabels, optionValueFocused, optionValueSelected }, , comboBoxContextNonStateRef] = useComboBoxContext();
-		const ulRef = (0, react.useRef)(
-			/** @type {HTMLUListElement | null} */
-			null
-		);
+		const [{ filterValue, isOptionsExpanded, options, optionsFiltered, optionsFilteredWithoutGroupLabels, optionValueFocused, optionValueSelected, firstSelectableByEnter }, , comboBoxContextNonStateRef] = useComboBoxContext();
+		const ulRef = (0, react.useRef)(null);
 		const announcedArrowKeysRef = (0, react.useRef)(false);
 		const { floatingStyles } = (0, _floating_ui_react_dom.useFloating)({
 			elements: {
@@ -2306,13 +2307,11 @@
 				(0, _floating_ui_react_dom.shift)()
 			],
 			open: isOptionsExpanded,
+			strategy: portalTarget ? "fixed" : "absolute",
 			placement: popupPlacement.BOTTOM,
 			whileElementsMounted: _floating_ui_react_dom.autoUpdate
 		});
-		const lastMessageRef = (0, react.useRef)(
-			/** @type {string | null} */
-			null
-		);
+		const lastMessageRef = (0, react.useRef)(null);
 		const addPoliteMessageDebounced = useDebounceFunc((0, react.useCallback)((message) => {
 			if (lastMessageRef.current !== message) {
 				addPoliteMessage(message);
@@ -2326,19 +2325,23 @@
 				const numGroups = optionsFiltered.filter((option) => option.isGroupLabel && isOptionGroupVisible(option.isGroupLabel ? option.optionGroupId ?? null : null, option.label, optionsFiltered, selectedValues)).length;
 				if (numGroups) message.push(`${optionsFilteredWithoutGroupLabels.length} result${optionsFilteredWithoutGroupLabels.length === 1 ? "" : "s"} available in ${numGroups} group${numGroups === 1 ? "" : "s"}.`);
 				else message.push(`${optionsFilteredWithoutGroupLabels.length} result${optionsFilteredWithoutGroupLabels.length === 1 ? "" : "s"} available.`);
+				if (firstSelectableByEnter && optionsFilteredWithoutGroupLabels.length > 0) {
+					const topOption = optionsFilteredWithoutGroupLabels[0];
+					message.push(`Press enter to select ${topOption?.label} or use the down arrow to begin selecting.`);
+				} else message.push("Use the down arrow key to begin selecting.");
 				if (allowCustomEntry && filterValue && !options.some((option) => option.labelLowerCase === filterValue.toLocaleLowerCase())) message.push(`Press Enter to add ${filterValue} to the combo box list.`);
-				message.push("Use the down arrow key to begin selecting.");
 				addPoliteMessageDebounced(message.join(" "));
 			}
 		}, [
 			isOptionsExpanded,
 			optionsFilteredWithoutGroupLabels,
-			filterValue
+			filterValue,
+			firstSelectableByEnter
 		]);
-		return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("ul", {
+		const listBox = /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("ul", {
 			id,
 			"aria-labelledby": ariaLabelledById,
-			className: joinClassNames("combo-box-input__list-box", !isOptionsExpanded && "visually-hidden"),
+			className: joinClassNames("combo-box-input__list-box", portalTarget && "combo-box-input__list-box--portaled", !isOptionsExpanded && "visually-hidden"),
 			ref: ulRef,
 			role: "listbox",
 			style: {
@@ -2364,6 +2367,12 @@
 				}) : null
 			]
 		});
+		if (portalTarget) return (0, react_dom.createPortal)(/* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", {
+			className: "utah-design-system",
+			style: { display: "contents" },
+			children: listBox
+		}), portalTarget);
+		return listBox;
 	}
 	//#endregion
 	//#region react/hooks/useRememberCursorPosition.js
@@ -2546,12 +2555,13 @@
 	* @param {(customValue: string) => void} [props.onCustomEntry]
 	* @param {(e: Event, currentFilterValue: string) => boolean} [props.onKeyUp] return true if the key press was handled by this handler
 	* @param {string} [props.placeholder]
+	* @param {string} [props.value]
 	* @param {string} [props.wrapperClassName]
 	* @returns {import('react').JSX.Element}
 	*/
 	function ComboBoxTextInput({ allowCustomEntry, className, comboBoxListId, errorMessage, iconCallback, id, innerRef: draftInnerRef, isClearable, isInvalid, isShowingClearableIcon, isDisabled, onBlur, onClear, onCustomEntry, onKeyUp, placeholder, ...rest }) {
 		const [multiSelectContext, , multiSelectContextRefs] = useMultiSelectContext();
-		const [{ filterValue, isOptionsExpanded, onClear: onClearComboBoxContext, onKeyUp: onKeyUpFromContext, onChange, options, optionValueFocusedId, optionValueSelected }, setComboBoxContext, comboBoxContextNonStateRef] = useComboBoxContext();
+		const [{ filterValue, isOptionsExpanded, onClear: onClearComboBoxContext, onKeyUp: onKeyUpFromContext, onChange, options, optionValueFocusedId, optionValueSelected, optionValueHighlighted, optionsFilteredWithoutGroupLabels }, setComboBoxContext, comboBoxContextNonStateRef] = useComboBoxContext();
 		const onCancelKeyPress = useOnKeyUp("Escape", (0, react.useCallback)(() => isClearable && setComboBoxContext(clearComboBoxSelection), [isClearable, setComboBoxContext]));
 		const onUpArrowPress = useOnKeyUp("ArrowUp", (0, react.useCallback)(() => setComboBoxContext((draftContext) => moveComboBoxSelectionUp(draftContext, comboBoxContextNonStateRef.current.textInput, multiSelectContext)), [
 			comboBoxContextNonStateRef,
@@ -2578,29 +2588,40 @@
 					setComboBoxContext((draftContext) => {
 						draftContext.isOptionsExpanded = false;
 					});
+					return;
+				}
+				if (optionValueHighlighted) {
+					const selectedOption = optionsFilteredWithoutGroupLabels.find((opt) => opt.value === optionValueHighlighted);
+					if (selectedOption) {
+						onChange(selectedOption.value);
+						setComboBoxContext((draftContext) => {
+							draftContext.isOptionsExpanded = false;
+							draftContext.optionValueSelected = selectedOption.value;
+							draftContext.filterValue = selectedOption.label;
+							draftContext.isFilterValueDirty = false;
+						});
+						e.preventDefault();
+					}
 				}
 			},
 			[
 				allowCustomEntry,
-				multiSelectContext,
 				options,
-				setComboBoxContext
+				setComboBoxContext,
+				onChange,
+				onCustomEntry,
+				optionValueHighlighted,
+				optionsFilteredWithoutGroupLabels
 			]
 		));
-		const clearIconRef = (0, react.useRef)(
-			/** @type {HTMLButtonElement | null} */
-			null
-		);
+		const clearIconRef = (0, react.useRef)(null);
 		const onKeyUpPreviousValue = (0, react.useRef)("");
 		(0, react.useEffect)(() => {
 			if (!optionValueSelected) setComboBoxContext((draftContext) => {
 				draftContext.filterValue = "";
 			});
-		}, [optionValueSelected]);
-		const textInputRef = (0, react.useRef)(
-			/** @type {HTMLInputElement | null} */
-			null
-		);
+		}, [optionValueSelected, setComboBoxContext]);
+		const textInputRef = (0, react.useRef)(null);
 		return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("div", { children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)(TextInput, {
 			"aria-activedescendant": optionValueFocusedId,
 			"aria-autocomplete": "list",
@@ -2736,6 +2757,7 @@
 	* @param {boolean} [props.isRequired]
 	* @param {boolean} [props.isShowingClearableIcon] if `isClearable` is true, this can override the logic for showing the clearable `x`
 	* @param {boolean} [props.isValueClearedOnSelection] after selection, is the value cleared so it appears to not be selected (multi-select uses this)
+	* @param {boolean} [props.isLabelSkipped] when true, the internal text input skips rendering its label
 	* @param {boolean} [props.isWrapperSkipped] wrapper div is optional
 	* @param {string} props.label
 	* @param {string} [props.labelClassName]
@@ -2743,21 +2765,25 @@
 	* @param {((newValue: string) => void)} [props.onChange]
 	* @param {() => void} [props.onClear]
 	* @param {(customValue: string) => void} [props.onCustomEntry] caller is responsible for adding options when they are added
+	* @param {import('react').UIEventHandler} [props.onBlur]
 	* @param {(e: Event, currentFilterValue: string) => boolean} [props.onKeyUp]
+	* @param {import('react').UIEventHandler} [props.onFocus]
 	* @param {string} [props.placeholder]
 	* @param {HTMLElement | null} [props.popupContentRef] for multi-select the popup relates to the multi-select wrapper, not the input
+	* @param {HTMLElement | null} [props.portalTarget] Element to portal the dropdown into.
+	*   Pass `document.body` (or any element outside CSS containment contexts) to fix
+	*   misalignment caused by `container-type:inline-size` / `contain:layout` ancestors.
+	*   Defaults to `null` (renders inline — original behaviour, safe for all existing apps).
 	* @param {import('react').ReactNode} [props.tagChildren]
 	* @param {string} [props.textInputClassName] className to put on the TextInput
 	* @param {string} [props.value]
 	* @param {string} [props.wrapperClassName]
+	* @param {boolean} [props.firstSelectableByEnter] if true, the first option will be highlighted by default and selectable by pressing Enter
 	* @returns {import('react').JSX.Element}
 	*/
-	function ComboBox({ allowCustomEntry, children, className, defaultValue, errorMessage, iconCallback, id, innerRef: draftInnerRef, isClearable, isDisabled, isInvalid, isRequired, isShowingClearableIcon, label, labelClassName, name, onChange, onCustomEntry, onClear, onKeyUp, placeholder, popupContentRef, isValueClearedOnSelection, isWrapperSkipped, tagChildren, textInputClassName, value, wrapperClassName, ...rest }) {
+	function ComboBox({ allowCustomEntry, children, className, defaultValue, errorMessage, iconCallback, id, innerRef: draftInnerRef, isClearable, isDisabled, isInvalid, isRequired, isShowingClearableIcon, label, labelClassName, name, onChange, onCustomEntry, onClear, onKeyUp, placeholder, popupContentRef, portalTarget = null, isValueClearedOnSelection, isWrapperSkipped, tagChildren, textInputClassName, value, wrapperClassName, firstSelectableByEnter, ...rest }) {
 		const comboBoxListId = `${id}__${(0, react.useId)()}`;
-		const [contentRefState, setContentRefState] = (0, react.useState)(
-			/** @type {HTMLInputElement | null} */
-			null
-		);
+		const [contentRefState, setContentRefState] = (0, react.useState)(null);
 		const child = /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 			className: joinClassNames("combo-box-input__inner-wrapper", className),
 			children: [
@@ -2782,6 +2808,7 @@
 					name,
 					onCustomEntry,
 					placeholder,
+					value,
 					...rest
 				}),
 				/* @__PURE__ */ (0, react_jsx_runtime.jsx)(CombBoxListBox, {
@@ -2789,6 +2816,7 @@
 					id: comboBoxListId,
 					ariaLabelledById: id,
 					popupReferenceElement: popupContentRef ?? contentRefState ?? null,
+					portalTarget,
 					children
 				})
 			]
@@ -2796,6 +2824,7 @@
 		return /* @__PURE__ */ (0, react_jsx_runtime.jsx)(ComboBoxContextProvider, {
 			comboBoxId: id,
 			defaultValue,
+			firstSelectableByEnter,
 			isValueClearedOnSelection,
 			onChange,
 			onClear,
@@ -2913,19 +2942,10 @@
 	* @returns {import('react').JSX.Element}
 	*/
 	function DateInput({ ariaLabel, className, dateFormat, defaultValue, errorMessage, hasCalendarPopup = true, id, innerRef: draftInnerRef, isClearable, isDisabled, isRequired, label, labelClassName, name, onChange, onClear, onKeyUp, placeholder, showCalendarTodayButton, value, wrapperClassName, ...rest }) {
-		const wrapperInternalRef = (0, react.useRef)(
-			/** @type {HTMLDivElement | null} */
-			null
-		);
+		const wrapperInternalRef = (0, react.useRef)(null);
 		const [isCalendarPopupOpen, setIsCalendarPopupOpen] = (0, use_immer.useImmer)(false);
-		const popupReferenceElementRef = (0, react.useRef)(
-			/** @type {HTMLDivElement | null} */
-			null
-		);
-		const calendarRef = (0, react.useRef)(
-			/** @type {HTMLDivElement | null} */
-			null
-		);
+		const popupReferenceElementRef = (0, react.useRef)(null);
+		const calendarRef = (0, react.useRef)(null);
 		const { floatingStyles } = (0, _floating_ui_react_dom.useFloating)({
 			elements: {
 				reference: popupReferenceElementRef.current,
@@ -3069,10 +3089,7 @@
 		const lf = new Intl.ListFormat("en");
 		const [isDragged, setDragged] = (0, use_immer.useImmer)(false);
 		const [files, setFiles] = (0, use_immer.useImmer)(value || null);
-		const inputRef = (0, react.useRef)(
-			/** @type {HTMLInputElement | null} */
-			null
-		);
+		const inputRef = (0, react.useRef)(null);
 		const checkFiles = (0, react.useCallback)((filesList) => {
 			let allowed = true;
 			if (acceptedFileTypes && files) {
@@ -3381,10 +3398,7 @@
 		const multiSelectContextValueRef = useRefAlways(multiSelectContextValue);
 		const selectedValuesRef = useRefAlways(multiSelectContextValue.selectedValues);
 		const { addPoliteMessage } = useAriaMessaging();
-		const wrapperRef = (0, react.useRef)(
-			/** @type {HTMLDivElement | null} */
-			null
-		);
+		const wrapperRef = (0, react.useRef)(null);
 		return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
 			className: joinClassNames("input-wrapper input-wrapper--multi-select", wrapperClassName),
 			ref: (ref) => {
@@ -3436,7 +3450,8 @@
 										if (e.key === "Backspace") {
 											eventIsHandled = true;
 											setMultiSelectContextValue((draftContext) => {
-												addPoliteMessage(`${draftContext.selectedValues.pop()} removed`);
+												const deadTag = draftContext.selectedValues.pop();
+												addPoliteMessage(`${deadTag} removed`);
 											});
 											const { activeElement } = document;
 											activeElement?.blur();
@@ -3477,6 +3492,7 @@
 								isDisabled
 							}),
 							/* @__PURE__ */ (0, react_jsx_runtime.jsx)(IconButton, {
+								tabIndex: -1,
 								className: joinClassNames("multi-select__chevron", "icon-button--borderless", "icon-button--small1x", isDisabled ? "multi-select__chevron--is-disabled" : ""),
 								icon: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("span", {
 									className: multiSelectContextValue.isOptionsExpanded ? "utds-icon-before-chevron-up" : "utds-icon-before-chevron-down",
@@ -3940,10 +3956,7 @@
 						disabled: isDisabled,
 						id,
 						name: name || id,
-						onChange: value !== void 0 ? (e) => onChangeCallback(
-							/** @type {any} */
-							e
-						) : void 0,
+						onChange: value !== void 0 ? (e) => onChangeCallback(e) : void 0,
 						onKeyUp: (0, react.useCallback)(
 							/** @param {import('react').KeyboardEvent} e */
 							(e) => {
@@ -3966,10 +3979,7 @@
 							className: "utds-icon-before-x-icon",
 							"aria-hidden": "true"
 						}),
-						onClick: (e) => clearInput(
-							/** @type {any} */
-							e
-						),
+						onClick: (e) => clearInput(e),
 						title: "Clear select",
 						isDisabled
 					}) : null]
@@ -4301,13 +4311,15 @@
 	/**
 	* @param {object} props
 	* @param {WebsiteMainMenu | WebsiteMainMenuItem} [props.currentMenuItem]
+	* @param {string} [props.id]
 	* @param {import('react').RefObject<HTMLAnchorElement | null>} [props.innerRef]
 	* @param {WebsiteMainMenuItem & VerticalMenuMenuItemAdditions} props.menuItem
 	* @param {MenuTypes} [props.menuType]
 	* @returns {import('react').JSX.Element}
 	*/
-	function MenuItemNavLink({ currentMenuItem, innerRef, menuItem, menuType }) {
+	function MenuItemNavLink({ currentMenuItem, id, innerRef, menuItem, menuType }) {
 		return /* @__PURE__ */ (0, react_jsx_runtime.jsx)("a", {
+			id,
 			className: joinClassNames(menuType === menuTypes.VERTICAL ? "vertical-menu__link-title" : "menu-item__link-title", currentMenuItem?.parentLinks?.includes(menuItem.link ?? "") && (currentMenuItem?.children?.length ? "" : "menu-item--selected_parent"), currentMenuItem?.link && menuItem?.link && currentMenuItem.link === menuItem.link ? "menu-item--selected" : ""),
 			href: menuItem.link || menuItem.actionUrl?.url || menuItem.actionFunctionUrl?.url || "#",
 			onClick: (e) => {
@@ -4334,19 +4346,21 @@
 	/**
 	* @param {object} props
 	* @param {WebsiteMainMenu | WebsiteMainMenuItem} [props.currentMenuItem]
+	* @param {boolean} [props.expandChildrenByDefault=true]
 	* @param {WebsiteMainMenuItem & VerticalMenuMenuItemAdditions} props.menuItem
 	* @param {MenuTypes} [props.menuType]
 	* @returns {import('react').JSX.Element}
 	*/
-	function MenuItemInline({ currentMenuItem, menuItem, menuType = menuTypes.VERTICAL }) {
-		const [isChildrenOpen, setIsChildrenOpen] = (0, use_immer.useImmer)(() => !!currentMenuItem?.parentLinks?.includes(menuItem.link ?? ""));
+	function MenuItemInline({ currentMenuItem, expandChildrenByDefault = true, menuItem, menuType = menuTypes.VERTICAL }) {
+		const [isChildrenOpen, setIsChildrenOpen] = (0, use_immer.useImmer)(() => expandChildrenByDefault && !!menuItem.children || !!currentMenuItem?.parentLinks?.includes(menuItem.link ?? ""));
 		(0, react.useEffect)(() => {
 			setIsChildrenOpen((isChildrenOpenPreviously) => !!(isChildrenOpenPreviously || currentMenuItem?.parentLinks?.includes(menuItem.link ?? "")));
-		}, [currentMenuItem, menuItem]);
-		const navLinkRef = (0, react.useRef)(
-			/** @type {HTMLAnchorElement | null} */
-			null
-		);
+		}, [
+			currentMenuItem,
+			menuItem,
+			setIsChildrenOpen
+		]);
+		const navLinkRef = (0, react.useRef)(null);
 		(0, react.useLayoutEffect)(() => {
 			if (navLinkRef.current) if (navLinkRef.current.classList.contains("menu-item--selected")) navLinkRef.current.setAttribute("aria-current", "page");
 			else navLinkRef.current.removeAttribute("aria-current");
@@ -4366,6 +4380,7 @@
 						children: menuItem.title
 					}) : /* @__PURE__ */ (0, react_jsx_runtime.jsx)(MenuItemNavLink, {
 						currentMenuItem,
+						id: menuItem.children ? encodeURI(`menu-item-${menuItem.id}-${menuItem.link || "link"}`) : void 0,
 						innerRef: navLinkRef,
 						menuItem,
 						menuType
@@ -4388,6 +4403,7 @@
 				className: joinClassNames("menu-item__sub-menu", menuType === menuTypes.VERTICAL ? "vertical-menu" : "", isChildrenOpen ? "menu-item__sub-menu--open" : ""),
 				children: menuItem.children?.map((menuItemChild) => /* @__PURE__ */ (0, react_jsx_runtime.jsx)(MenuItemInline, {
 					currentMenuItem,
+					expandChildrenByDefault,
 					menuItem: menuItemChild,
 					menuType
 				}, `menu-item__child__${menuItemChild.link}-${menuItemChild.title}}`))
@@ -4656,7 +4672,7 @@
 		}, [
 			handler,
 			isDisabled,
-			...refs
+			refs
 		]);
 	}
 	//#endregion
@@ -4675,18 +4691,9 @@
 	*/
 	function MenuItemFlyout({ currentMenuItem, menuItem, menuType, triggerOnHover = true }) {
 		const [isChildrenOpen, setIsChildrenOpen] = (0, use_immer.useImmer)(false);
-		const wrapperElement = (0, react.useRef)(
-			/** @type {HTMLLIElement | null} */
-			null
-		);
-		const buttonRef = (0, react.useRef)(
-			/** @type {HTMLButtonElement | null} */
-			null
-		);
-		const popupRef = (0, react.useRef)(
-			/** @type {HTMLDivElement | null} */
-			null
-		);
+		const wrapperElement = (0, react.useRef)(null);
+		const buttonRef = (0, react.useRef)(null);
+		const popupRef = (0, react.useRef)(null);
 		const {} = (0, _floating_ui_react_dom.useFloating)({
 			elements: {
 				reference: buttonRef.current,
@@ -4788,11 +4795,12 @@
 	* @param {object} props
 	* @param {string} [props.className]
 	* @param {WebsiteMainMenu | WebsiteMainMenuItem} [props.currentMenuItem]
+	* @param {boolean} [props.expandInlineChildrenByDefault=true]
 	* @param {WebsiteMainMenu[]} props.menus
 	* @param {boolean} [props.triggerOnHover]
 	* @returns {import('react').JSX.Element}
 	*/
-	function VerticalMenu({ className, currentMenuItem, menus, triggerOnHover = true }) {
+	function VerticalMenu({ className, currentMenuItem, expandInlineChildrenByDefault = true, menus, triggerOnHover = true }) {
 		return /* @__PURE__ */ (0, react_jsx_runtime.jsx)(react_jsx_runtime.Fragment, { children: menus.map((menu) => {
 			const TitleTagName = menu.titleTagName || "h2";
 			return /* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", {
@@ -4811,7 +4819,8 @@
 								result = /* @__PURE__ */ (0, react_jsx_runtime.jsx)(MenuItemInline, {
 									menuType: menuTypes.VERTICAL,
 									currentMenuItem,
-									menuItem
+									menuItem,
+									expandChildrenByDefault: expandInlineChildrenByDefault
 								}, `vertical-menu__menu-item__${menuItem.link}-${menuItem.title}}`);
 								break;
 							case _utahdts_utah_design_system_header.childrenMenuTypes.FLYOUT:
@@ -5153,18 +5162,9 @@
 	*/
 	function Modal({ ariaLabelledBy, children, className, id, innerRef, onEscape, onClose }) {
 		const ref = (0, react.useRef)(null);
-		const [lastActiveElement] = (0, use_immer.useImmer)(
-			/** @type {HTMLElement | undefined} */
-			document.activeElement
-		);
-		const [firstTabElement, setFirstTabElement] = (0, use_immer.useImmer)(
-			/** @type {HTMLElement | undefined} */
-			void 0
-		);
-		const [lastTabElement, setLastTabElement] = (0, use_immer.useImmer)(
-			/** @type {HTMLElement | undefined} */
-			void 0
-		);
+		const [lastActiveElement] = (0, use_immer.useImmer)(document.activeElement);
+		const [firstTabElement, setFirstTabElement] = (0, use_immer.useImmer)(void 0);
+		const [lastTabElement, setLastTabElement] = (0, use_immer.useImmer)(void 0);
 		const { addAssertiveMessage } = useAriaMessaging();
 		const handleEscape = useHandleEscape(onEscape);
 		const handleTab = useHandleTab(firstTabElement, lastTabElement);
@@ -5271,10 +5271,7 @@
 	*/
 	function useGlobalKeyEvent({ whichKeyCode, onKeyDown, onKeyUp }) {
 		const [keyPressed, setKeyPressed] = (0, react.useState)(false);
-		const keydownFuncRef = (0, react.useRef)(
-			/** @type {import('react').KeyboardEventHandler<KeyboardEventHandlerT> | null} */
-			null
-		);
+		const keydownFuncRef = (0, react.useRef)(null);
 		(0, react.useEffect)(() => {
 			keydownFuncRef.current = (e) => {
 				if (e.code === whichKeyCode || e.keyCode === whichKeyCode || e.key === whichKeyCode) {
@@ -5326,14 +5323,8 @@
 		mainAxis: 10,
 		crossAxis: 0
 	}, onVisibleChange, placement = popupPlacement.BOTTOM, referenceElement, role, ...rest }) {
-		const popupRef = (0, react.useRef)(
-			/** @type {HTMLDivElement | null} */
-			null
-		);
-		const arrowRef = (0, react.useRef)(
-			/** @type {HTMLDivElement | null} */
-			null
-		);
+		const popupRef = (0, react.useRef)(null);
+		const arrowRef = (0, react.useRef)(null);
 		if (draftInnerRef) draftInnerRef.current = popupRef.current;
 		const { floatingStyles, middlewareData } = (0, _floating_ui_react_dom.useFloating)({
 			elements: {
@@ -5627,16 +5618,10 @@
 	function TableBodyData({ children, recordIdField, records }) {
 		const timer = (0, react.useRef)(NaN);
 		const { addPoliteMessage } = useAriaMessaging();
-		const [recordsForContexts, setRecordsForContexts] = (0, use_immer.useImmer)(
-			/** @type {(RecordT & object)[] | null} */
-			null
-		);
+		const [recordsForContexts, setRecordsForContexts] = (0, use_immer.useImmer)(null);
 		const { state: { currentSortingOrderIsDefault, filterValues, pagination, sortingRules, tableSortingFieldPath, tableSortingFieldPaths }, setBodyData } = useTableContext();
 		const previousFilterValues = (0, react.useRef)(filterValues.value);
-		const [paginatedRecords, setPaginatedRecords] = (0, use_immer.useImmer)(
-			/** @type {{record: any, recordIndex: number, records: any}[]} */
-			[]
-		);
+		const [paginatedRecords, setPaginatedRecords] = (0, use_immer.useImmer)([]);
 		(0, react.useEffect)(() => {
 			let newRecordsForContext = records?.map((record, recordIndex) => ({
 				record,
@@ -6012,7 +5997,12 @@
 	function TableFilterComboBox({ a11yLabel, children, className, defaultValue, exactMatch, id, innerRef, onChange, placeholder, recordFieldPath, value, ...rest }) {
 		const { currentOnChange, currentValue, setValue } = useCurrentValuesFromStateContext({
 			contextStatePath: recordFieldPath,
-			defaultOnChange: ((newValue) => newValue),
+			defaultOnChange: (
+			/**
+			* @param {string} newValue
+			* @returns {string}
+			*/
+(newValue) => newValue),
 			defaultValue,
 			onChange,
 			value
@@ -6056,7 +6046,12 @@
 	function TableFilterComboBoxAllOptions({ a11yLabel, className, defaultValue, exactMatch, id, innerRef, onChange, placeholder, recordFieldPath, value, ...rest }) {
 		const { currentOnChange, currentValue, setValue } = useCurrentValuesFromStateContext({
 			contextStatePath: recordFieldPath,
-			defaultOnChange: ((newValue) => newValue),
+			defaultOnChange: (
+			/**
+			* @param {string} newValue
+			* @returns {string}
+			*/
+(newValue) => newValue),
 			defaultValue,
 			onChange,
 			value
@@ -6208,18 +6203,9 @@
 	* @returns {import('react').JSX.Element}
 	*/
 	function TableFilterDateRangePopup({ dateFormat, id, isPopupOpen, onChange, popupReferenceElement, setIsPopupOpen, tableFilterDateId, value }) {
-		const beginDateRef = (0, react.useRef)(
-			/** @type {HTMLDivElement | null} */
-			null
-		);
-		const [currentInput, setCurrentInput] = (0, use_immer.useImmer)(
-			/** @type {BeginEndDate} */
-			BeginEndDates.BEGIN
-		);
-		const calendarInputRef = (0, react.useRef)(
-			/** @type {HTMLDivElement | null} */
-			null
-		);
+		const beginDateRef = (0, react.useRef)(null);
+		const [currentInput, setCurrentInput] = (0, use_immer.useImmer)(BeginEndDates.BEGIN);
+		const calendarInputRef = (0, react.useRef)(null);
 		(0, react.useEffect)(() => {
 			if (isPopupOpen) (beginDateRef.current?.querySelector(".date-input"))?.focus();
 		}, [isPopupOpen]);
@@ -6321,14 +6307,16 @@
 			dateRangeDateFormat: dateFormat
 		});
 		const { state: { tableId } } = useTableContext();
-		const popupContentRef = (0, react.useRef)(
-			/** @type {HTMLDivElement | null} */
-			null
-		);
+		const popupContentRef = (0, react.useRef)(null);
 		const [state, setState] = (0, use_immer.useImmer)({ isPopupOpen: false });
 		const { currentOnChange, currentValue } = useCurrentValuesFromStateContext({
 			contextStatePath: recordFieldPath,
-			defaultOnChange: ((newValue) => newValue),
+			defaultOnChange: (
+			/**
+			* @param {string} newValue
+			* @returns {string}
+			*/
+(newValue) => newValue),
 			defaultValue: defaultValue ?? null,
 			onChange,
 			value: value ?? null
@@ -6447,7 +6435,12 @@
 	function TableFilterSelect({ a11yLabel, children, className, defaultValue, exactMatch, id, innerRef, onChange, placeholder, recordFieldPath, value, ...rest }) {
 		const { currentOnChange, currentValue } = useCurrentValuesFromStateContext({
 			contextStatePath: recordFieldPath,
-			defaultOnChange: ((e) => e.target.value),
+			defaultOnChange: (
+			/**
+			* @param {import('react').BaseSyntheticEvent} e
+			* @returns {any}
+			*/
+(e) => e.target.value),
 			defaultValue,
 			onChange,
 			value
@@ -6489,7 +6482,12 @@
 	function TableFilterSelectAllOptions({ a11yLabel, className, defaultValue, exactMatch, id, innerRef, onChange, placeholder, recordFieldPath, value, ...rest }) {
 		const { currentOnChange, currentValue } = useCurrentValuesFromStateContext({
 			contextStatePath: recordFieldPath,
-			defaultOnChange: ((e) => e.target.value),
+			defaultOnChange: (
+			/**
+			* @param {import('react').BaseSyntheticEvent} e
+			* @returns {any}
+			*/
+(e) => e.target.value),
 			defaultValue,
 			onChange,
 			value
@@ -6996,10 +6994,11 @@
 		const { addPoliteMessage } = useAriaMessaging();
 		(0, react.useEffect)(() => {
 			if (tableSortingFieldPathOldRef.current && state.tableSortingFieldPath && (tableSortingFieldPathOldRef.current !== state.tableSortingFieldPath || tableSortingFieldPathsOldRef.current !== state.tableSortingFieldPaths || state.currentSortingOrderIsDefault !== isAscendingOldRef.current)) {
-				addPoliteMessage(`Sorting changed to ${(state.tableSortingFieldPaths || [state.tableSortingFieldPath]).map((sortingField) => state.sortingRules[sortingField]).map((sortingRule) => {
+				const sortingRulesMessages = (state.tableSortingFieldPaths || [state.tableSortingFieldPath]).map((sortingField) => state.sortingRules[sortingField]).map((sortingRule) => {
 					const isAscending = !!sortingRule?.defaultIsAscending === !!state.currentSortingOrderIsDefault;
 					return `${sortingRule?.a11yLabel ?? ""} ${isAscending ? "ascending" : "descending"}`;
-				}).join(", ")}`);
+				});
+				addPoliteMessage(`Sorting changed to ${sortingRulesMessages.join(", ")}`);
 				state.tableSortingOnChange?.({ recordFieldPath: state.tableSortingFieldPath });
 			}
 			isAscendingOldRef.current = state.currentSortingOrderIsDefault;
@@ -7012,7 +7011,15 @@
 			registerSortingRule: (sortingRule) => setState((draftState) => {
 				draftState.sortingRules[sortingRule.recordFieldPath] = {
 					...sortingRule,
-					sorter: ((recordA, recordB, records) => {
+					sorter: (
+					/**
+					*
+					* @param {{ record: TableDataT, recordIndex: number }} recordA
+					* @param {{ record: TableDataT, recordIndex: number }} recordB
+					* @param {TableDataT[]} records
+					* @returns {number}
+					*/
+(recordA, recordB, records) => {
 						const fieldValueA = valueAtPath({
 							object: recordA.record,
 							path: sortingRule.recordFieldPath
@@ -7320,10 +7327,7 @@
 	function BannersGlobal({ banners, bannerDuration, defaultClassName }) {
 		const { removeBanner } = useBanner();
 		const timers = (0, react.useMemo)(() => ({}), []);
-		const [zones, setZones] = (0, use_immer.useImmer)(
-			/** @type {Record<string, UtahDesignSystemContextBannerWithId[]>} */
-			{}
-		);
+		const [zones, setZones] = (0, use_immer.useImmer)({});
 		const currentOnClose = (0, react.useCallback)(
 			/**
 			* @param {import('react').MouseEvent | undefined} e
@@ -7516,10 +7520,7 @@
 	*/
 	function useRefLazy(lazyValue) {
 		const isLoadedRef = (0, react.useRef)(false);
-		const ref = (0, react.useRef)(
-			/** @type {T} */
-			void 0
-		);
+		const ref = (0, react.useRef)(void 0);
 		if (!isLoadedRef.current) {
 			isLoadedRef.current = true;
 			ref.current = (0, lodash_es.isFunction)(lazyValue) ? lazyValue() : lazyValue;
@@ -7539,10 +7540,7 @@
 	* @returns {(callback: (() => void)) => void} call this function to fire your timeout
 	*/
 	function useTimeout(delay, isDebounced) {
-		const timeoutIdsRef = (0, react.useRef)(
-			/** @type {number[]} */
-			[]
-		);
+		const timeoutIdsRef = (0, react.useRef)([]);
 		(0, react.useEffect)(() => () => clearTimeoutIds(timeoutIdsRef.current), []);
 		return (0, react.useCallback)((callback) => {
 			if (isDebounced) clearTimeoutIds(timeoutIdsRef.current);
