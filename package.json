@@ -29,7 +29,7 @@
     "cleanExampleUtahHeaderVite": "rimraf ./examples/utah-header/vite/node_modules & rimraf ./examples/utah-header/vite/package-lock.json",
     "cleanNodeModules": "rimraf ./utah-design-system-website/node_modules & rimraf ./@utahdts/utah-design-system/node_modules & rimraf ./@utahdts/utah-design-system-header/node_modules & rimraf node_modules",
     "cleanPackageLock": "rimraf package-lock.json",
-    "copyStyle": "cp ./@utahdts/utah-design-system/dist/style.css ./@utahdts/utah-design-system-header/dist/",
+    "copyStyle": "node -e \"const fs=require('fs');fs.copyFileSync('./@utahdts/utah-design-system/dist/style.css','./@utahdts/utah-design-system-header/dist/style.css')\"",
     "eslint": "npx eslint .",
     "eslintw": "npx eslint-watch -w .",
     "generateSitemap": "node --experimental-modules --es-module-specifier-resolution=node utah-design-system-website/scripts/generateSitemap.js  -workspace=utah-design-system-website",

@@ -79,7 +79,7 @@ export default [
       "@stylistic/prop-types": "off",
       "@stylistic/jsx-one-expression-per-line": "off",
       "react-refresh/only-export-components": "error",
-      "linebreak-style": "error",
+      "linebreak-style": "off",
       "import/prefer-default-export": "off",
       "@stylistic/react-in-jsx-scope": "off",
 
