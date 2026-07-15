@@ -44,7 +44,7 @@ var package_default = {
 	scripts: {
 		"build": "vite build",
 		"buildw": "vite build --watch",
-		"buildTypes": "node -e \"const fs=require('fs');fs.mkdirSync('./dist',{recursive:true});fs.copyFileSync('./artifacts/index.d.ts','./dist/index.d.ts')\"",
+		"buildTypes": "mkdir -p dist && cp ./artifacts/index.d.ts ./dist/",
 		"generateTypes": "npx tsc",
 		"preview": "vite preview",
 		"publishLibrary": "npm publish --access public",
@@ -2528,9 +2528,10 @@ function clearComboBoxSelection(draftContext) {
 * @param {string} [props.placeholder]
 * @param {string} [props.value]
 * @param {string} [props.wrapperClassName]
+* @param {boolean} [props.firstSelectableByEnter]
 * @returns {import('react').JSX.Element}
 */
-function ComboBoxTextInput({ allowCustomEntry, className, comboBoxListId, errorMessage, iconCallback, id, innerRef: draftInnerRef, isClearable, isInvalid, isShowingClearableIcon, isDisabled, onBlur, onClear, onCustomEntry, onKeyUp, placeholder, ...rest }) {
+function ComboBoxTextInput({ allowCustomEntry, className, comboBoxListId, errorMessage, iconCallback, id, innerRef: draftInnerRef, isClearable, isInvalid, isShowingClearableIcon, isDisabled, onBlur, onClear, onCustomEntry, onKeyUp, placeholder, firstSelectableByEnter, ...rest }) {
 	const [multiSelectContext, , multiSelectContextRefs] = useMultiSelectContext();
 	const [{ filterValue, isOptionsExpanded, onClear: onClearComboBoxContext, onKeyUp: onKeyUpFromContext, onChange, options, optionValueFocusedId, optionValueSelected, optionValueHighlighted, optionsFilteredWithoutGroupLabels }, setComboBoxContext, comboBoxContextNonStateRef] = useComboBoxContext();
 	const onCancelKeyPress = useOnKeyUp("Escape", useCallback(() => isClearable && setComboBoxContext(clearComboBoxSelection), [isClearable, setComboBoxContext]));
@@ -2664,7 +2665,7 @@ function ComboBoxTextInput({ allowCustomEntry, className, comboBoxListId, errorM
 					onCancelKeyPress(e),
 					onUpArrowPress(e),
 					onDownArrowPress(e),
-					allowCustomEntry && onEnterPress(e)
+					(allowCustomEntry || firstSelectableByEnter) && onEnterPress(e)
 				].some(identity)) {
 					if (![
 						"Alt",
@@ -2780,6 +2781,7 @@ function ComboBox({ allowCustomEntry, children, className, defaultValue, errorMe
 				onCustomEntry,
 				placeholder,
 				value,
+				firstSelectableByEnter,
 				...rest
 			}),
 			/* @__PURE__ */ jsx(CombBoxListBox, {

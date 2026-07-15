@@ -44,7 +44,6 @@ import { moveComboBoxSelectionUp } from '../functions/moveComboBoxSelectionUp';
  * @returns {import('react').JSX.Element}
  */
 
-//TODO: Amy - v2.2
 export function ComboBoxTextInput({
   allowCustomEntry,
   className,
@@ -134,13 +133,8 @@ export function ComboBoxTextInput({
           return;
         }
         
-        //TODO: Amy
-        console.log('optionValueHighlighted:', optionValueHighlighted);
-
         // NEW: Select highlighted option if present
         if (optionValueHighlighted) {
-          //TODO: Amy
-          console.log('look it went in here');
           const selectedOption = optionsFilteredWithoutGroupLabels.find(
             (opt) => opt.value === optionValueHighlighted
           );

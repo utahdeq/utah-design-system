@@ -2828,6 +2828,9 @@ component specific, BEM (Block, Element, Modifier)
   overflow: auto;
   width: max-content;
 }
+.utah-design-system .combo-box-input__list-box--portaled {
+  z-index: 6000;
+}
 .utah-design-system .combo-box-input__option {
   padding: var(--spacing-2xs) var(--spacing-s);
   font-weight: var(--font-weight-normal);
