@@ -31,7 +31,7 @@
   "scripts": {
     "build": "vite build",
     "buildw": "vite build --watch",
-    "buildTypes": "node -e \"const fs=require('fs');fs.mkdirSync('./dist',{recursive:true});fs.copyFileSync('./artifacts/index.d.ts','./dist/index.d.ts')\"",
+    "buildTypes": "mkdir -p dist && cp ./artifacts/index.d.ts ./dist/",
     "generateTypes": "npx tsc",
     "clean": "run-s cleanPackageLock cleanDist cleanNodeModules",
     "cleani": "run-s clean npmi",

@@ -111,6 +111,7 @@ export function ComboBox({
         onCustomEntry={onCustomEntry}
         placeholder={placeholder}
         value={value} // Pass value down
+        firstSelectableByEnter={firstSelectableByEnter}
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...rest}
       />

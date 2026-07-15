@@ -40,6 +40,7 @@ import { moveComboBoxSelectionUp } from '../functions/moveComboBoxSelectionUp';
  * @param {string} [props.placeholder]
  * @param {string} [props.value]
  * @param {string} [props.wrapperClassName]
+ * @param {boolean} [props.firstSelectableByEnter]
  * @returns {import('react').JSX.Element}
  */
 export function ComboBoxTextInput({
@@ -59,6 +60,7 @@ export function ComboBoxTextInput({
   onCustomEntry,
   onKeyUp,
   placeholder,
+  firstSelectableByEnter,
   ...rest
 }) {
   const [multiSelectContext, , multiSelectContextRefs] = useMultiSelectContext();
@@ -129,9 +131,14 @@ export function ComboBoxTextInput({
           }); 
           return;
         }
+        
+        //TODO: Amy
+        console.log('optionValueHighlighted:', optionValueHighlighted);
 
         // NEW: Select highlighted option if present
         if (optionValueHighlighted) {
+          //TODO: Amy
+          console.log('look it went in here');
           const selectedOption = optionsFilteredWithoutGroupLabels.find(
             (opt) => opt.value === optionValueHighlighted
           );
@@ -283,7 +290,7 @@ export function ComboBoxTextInput({
               onCancelKeyPress(e),
               onUpArrowPress(e),
               onDownArrowPress(e),
-              allowCustomEntry && onEnterPress(e),
+              (allowCustomEntry || firstSelectableByEnter) && onEnterPress(e),
             ].some(identity)) {
               if (!['Alt', 'Control', 'Meta', 'Tab', 'Shift', 'ShiftLeft', 'ShiftRight'].includes(e.key)) {
                 setComboBoxContext((draftContext) => {
