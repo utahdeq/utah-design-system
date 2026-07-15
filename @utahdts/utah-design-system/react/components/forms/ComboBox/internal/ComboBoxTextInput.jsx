@@ -43,6 +43,8 @@ import { moveComboBoxSelectionUp } from '../functions/moveComboBoxSelectionUp';
  * @param {boolean} [props.firstSelectableByEnter]
  * @returns {import('react').JSX.Element}
  */
+
+//TODO: Amy - v2.2
 export function ComboBoxTextInput({
   allowCustomEntry,
   className,
